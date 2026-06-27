@@ -96,20 +96,9 @@ npm run typecheck
 4. El backend maneja la cookie segura de refresh token.
 5. El frontend descarga los PDFs generados por el backend.
 
-## Archivos que no deben subirse al repositorio
-
-```txt
-node_modules/
-dist/
-.npm-cache/
-.git-local/
-coverage/
-.env
-```
 
 El archivo `package-lock.json` sí debe mantenerse versionado.
 
 ## Estado del proyecto
 
 Frontend listo para integración con backend.  
-Pendiente realizar prueba funcional completa con backend, base de datos y generación real de PDFs.
