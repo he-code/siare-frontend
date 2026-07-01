@@ -7,18 +7,17 @@
 </template>
 
 <script setup lang="ts">
-import { Inbox } from 'lucide-vue-next';
-import type { Component } from 'vue';
+import { Inbox, type LucideIcon } from 'lucide-vue-next';
 
 withDefaults(
   defineProps<{
     title: string;
     message?: string;
-    icon?: Component;
+    icon?: LucideIcon;
   }>(),
   {
     message: '',
-    icon: Inbox,
+    icon: () => Inbox,
   },
 );
 </script>

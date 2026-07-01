@@ -34,6 +34,7 @@ const roleCapabilities: Record<Role, Capability[]> = {
   asistente_actas: [
     'catalogs.read',
     'entryActs.read',
+    'entryActs.manage',
     'deliveryActs.read',
     'deliveryActs.manage',
     'inventory.summary',

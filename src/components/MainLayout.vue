@@ -1,16 +1,19 @@
 <template>
   <div class="app-shell">
     <aside class="sidebar" :class="{ 'sidebar--open': sidebarOpen }">
-      <RouterLink class="brand" to="/">
+      <RouterLink class="brand" to="/dashboard">
         <PackageCheck aria-hidden="true" />
         <span>SIARE</span>
       </RouterLink>
 
       <nav class="main-nav" aria-label="Principal">
-        <RouterLink v-for="item in visibleMenu" :key="item.to" :to="item.to" class="main-nav__item" @click="sidebarOpen = false">
-          <component :is="item.icon" aria-hidden="true" />
-          <span>{{ item.label }}</span>
-        </RouterLink>
+        <div v-for="group in visibleMenuGroups" :key="group.label" class="main-nav__group">
+          <span class="main-nav__section-title">{{ group.label }}</span>
+          <RouterLink v-for="item in group.items" :key="item.to" :to="item.to" class="main-nav__item" @click="sidebarOpen = false">
+            <component :is="item.icon" aria-hidden="true" />
+            <span>{{ item.label }}</span>
+          </RouterLink>
+        </div>
       </nav>
     </aside>
 
@@ -47,6 +50,7 @@
 import {
   BookOpenCheck,
   Boxes,
+  Building2,
   ClipboardList,
   FileInput,
   FileOutput,
@@ -72,15 +76,60 @@ interface MenuItem {
   capability: Capability;
 }
 
-const menu: MenuItem[] = [
-  { label: 'Dashboard', to: '/', icon: LayoutDashboard, capability: 'inventory.summary' },
-  { label: 'Actas de ingreso', to: '/actas-ingreso', icon: FileInput, capability: 'entryActs.read' },
-  { label: 'Actas de entrega', to: '/actas-entrega', icon: FileOutput, capability: 'deliveryActs.read' },
-  { label: 'Movimientos', to: '/inventario/movimientos', icon: ClipboardList, capability: 'inventory.movements' },
-  { label: 'Ajuste de stock', to: '/inventario/ajustes', icon: Boxes, capability: 'inventory.adjust' },
-  { label: 'Usuarios', to: '/usuarios', icon: UsersRound, capability: 'users.manage' },
-  { label: 'Catálogos', to: '/catalogos/materiales', icon: BookOpenCheck, capability: 'catalogs.read' },
-  { label: 'Procesos', to: '/catalogos/procesos-adquisicion', icon: Settings2, capability: 'acquisitions.manage' },
+interface MenuGroup {
+  label: string;
+  items: MenuItem[];
+}
+
+const menuGroups: MenuGroup[] = [
+  {
+    label: 'Inicio',
+    items: [{ label: 'Dashboard', to: '/dashboard', icon: LayoutDashboard, capability: 'inventory.summary' }],
+  },
+  {
+    label: 'Actas',
+    items: [
+      { label: 'Actas de ingreso', to: '/actas-ingreso', icon: FileInput, capability: 'entryActs.read' },
+      { label: 'Actas de entrega', to: '/actas-entrega', icon: FileOutput, capability: 'deliveryActs.read' },
+    ],
+  },
+  {
+    label: 'Catálogos',
+    items: [
+      { label: 'Materiales', to: '/catalogos/materiales', icon: PackageCheck, capability: 'catalogs.read' },
+      { label: 'Categorías', to: '/catalogos/categorias', icon: BookOpenCheck, capability: 'catalogs.read' },
+      { label: 'Unidades de medida', to: '/catalogos/unidades-medida', icon: Boxes, capability: 'catalogs.read' },
+      { label: 'Instituciones y líderes', to: '/catalogos/instituciones', icon: Building2, capability: 'catalogs.read' },
+    ],
+  },
+  {
+    label: 'Procesos',
+    items: [
+      {
+        label: 'Autoridades distritales',
+        to: '/catalogos/autoridades-distritales',
+        icon: UserRound,
+        capability: 'authorities.manage',
+      },
+      {
+        label: 'Procesos de adquisición',
+        to: '/catalogos/procesos-adquisicion',
+        icon: Settings2,
+        capability: 'acquisitions.manage',
+      },
+    ],
+  },
+  {
+    label: 'Inventario',
+    items: [
+      { label: 'Movimientos', to: '/inventario/movimientos', icon: ClipboardList, capability: 'inventory.movements' },
+      { label: 'Ajuste de stock', to: '/inventario/ajustes', icon: Boxes, capability: 'inventory.adjust' },
+    ],
+  },
+  {
+    label: 'Administración',
+    items: [{ label: 'Usuarios', to: '/usuarios', icon: UsersRound, capability: 'users.manage' }],
+  },
 ];
 
 const auth = useAuthStore();
@@ -89,7 +138,11 @@ const route = useRoute();
 const sidebarOpen = ref(false);
 const loggingOut = ref(false);
 
-const visibleMenu = computed(() => menu.filter((item) => can(auth.user?.role, item.capability)));
+const visibleMenuGroups = computed(() =>
+  menuGroups
+    .map((group) => ({ ...group, items: group.items.filter((item) => can(auth.user?.role, item.capability)) }))
+    .filter((group) => group.items.length > 0),
+);
 
 const currentSection = computed(() => String(route.meta.title ?? 'SIARE'));
 
@@ -97,6 +150,6 @@ async function logout() {
   loggingOut.value = true;
   await auth.logout();
   loggingOut.value = false;
-  await router.push('/login');
+  await router.push('/');
 }
 </script>

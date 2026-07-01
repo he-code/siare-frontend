@@ -1,20 +1,15 @@
 <template>
   <section>
-    <div class="page-header">
+    <div class="page-header resource-heading">
       <div>
         <h1>{{ config?.title ?? 'Catálogo' }}</h1>
+        <p v-if="config?.description">{{ config.description }}</p>
       </div>
       <AppButton v-if="config && canManage" variant="primary" @click="openCreate">
         <template #icon><Plus aria-hidden="true" /></template>
-        Nuevo
+        {{ config.createLabel ?? 'Nuevo registro' }}
       </AppButton>
     </div>
-
-    <nav v-if="isCatalogRoute" class="tabs" aria-label="Catálogos">
-      <RouterLink v-for="tab in visibleTabs" :key="tab.key" :to="`/catalogos/${tab.key}`">
-        {{ tab.title }}
-      </RouterLink>
-    </nav>
 
     <div v-if="!config" class="panel">
       <EmptyState title="No se encontró el recurso" />
@@ -87,7 +82,7 @@
       />
     </template>
 
-    <ModalSheet :open="formOpen" :title="formMode === 'create' ? `Nuevo ${config?.title}` : `Editar ${config?.title}`" @close="formOpen = false">
+    <ModalSheet :open="formOpen" :title="modalTitle" @close="formOpen = false">
       <form v-if="config" class="modal-body" @submit.prevent="submitForm">
         <div class="field-grid">
           <label
@@ -129,6 +124,63 @@
           </label>
         </div>
 
+        <section v-if="showInstitutionLeaders" class="inline-section">
+          <header class="inline-section__header">
+            <div>
+              <h3>Líderes de la institución</h3>
+              <p>Registra aquí al rector o director junto con la institución para evitar volver a otro menú.</p>
+            </div>
+            <AppButton type="button" variant="secondary" @click="addInstitutionLeader">
+              <template #icon><Plus aria-hidden="true" /></template>
+              Agregar líder
+            </AppButton>
+          </header>
+
+          <div class="nested-list">
+            <div v-for="(leader, index) in institutionLeaderForms" :key="leader.localId" class="nested-card">
+              <div class="nested-card__title">
+                <strong>Líder {{ index + 1 }}</strong>
+                <AppButton
+                  v-if="!leader.id && institutionLeaderForms.length > 1"
+                  type="button"
+                  variant="ghost"
+                  icon-only
+                  aria-label="Quitar líder"
+                  @click="removeInstitutionLeader(index)"
+                >
+                  <template #icon><Trash2 aria-hidden="true" /></template>
+                </AppButton>
+              </div>
+
+              <div class="field-grid">
+                <label class="form-field">
+                  <span>Identificación</span>
+                  <input v-model.trim="leader.nationalId" maxlength="20" required />
+                </label>
+                <label class="form-field">
+                  <span>Nombres</span>
+                  <input v-model.trim="leader.firstNames" maxlength="100" required />
+                </label>
+                <label class="form-field">
+                  <span>Apellidos</span>
+                  <input v-model.trim="leader.lastNames" maxlength="100" required />
+                </label>
+                <label class="form-field">
+                  <span>Cargo</span>
+                  <select v-model="leader.position" required>
+                    <option value="">Selecciona</option>
+                    <option v-for="option in leaderPositionOptions" :key="option.value" :value="option.value">{{ option.label }}</option>
+                  </select>
+                </label>
+                <label class="checkbox-field">
+                  <input v-model="leader.active" type="checkbox" />
+                  <span>Activo</span>
+                </label>
+              </div>
+            </div>
+          </div>
+        </section>
+
         <p v-if="formError" class="alert">{{ formError }}</p>
 
         <footer class="modal-actions">
@@ -141,7 +193,7 @@
 </template>
 
 <script setup lang="ts">
-import { CircleAlert, Pencil, Plus } from 'lucide-vue-next';
+import { CircleAlert, Pencil, Plus, Trash2 } from 'lucide-vue-next';
 import { computed, reactive, ref, watch } from 'vue';
 import { useRoute, useRouter } from 'vue-router';
 
@@ -158,9 +210,24 @@ import { can } from '@/permissions/capabilities';
 import { useToastStore } from '@/stores/toast';
 import type { Pagination } from '@/types/contracts';
 import { formatDate, formatDateTime, formatDecimal, formatMoney, toNumber } from '@/utils/format';
-import { catalogTabs, resourceConfigs, type ColumnConfig, type FieldConfig, type SelectOption } from './resourceConfigs';
+import { resourceConfigs, type ColumnConfig, type FieldConfig, type SelectOption } from './resourceConfigs';
 
 type Row = Record<string, unknown> & { id: string };
+
+interface InstitutionLeaderForm {
+  localId: string;
+  id?: string;
+  nationalId: string;
+  firstNames: string;
+  lastNames: string;
+  position: string;
+  active: boolean;
+}
+
+const leaderPositionOptions: SelectOption[] = [
+  { label: 'Rector', value: 'rector' },
+  { label: 'Director', value: 'director' },
+];
 
 const route = useRoute();
 const router = useRouter();
@@ -179,17 +246,49 @@ const pagination = reactive<Pagination>({ page: 1, pageSize: 20, total: 0, pages
 const filters = reactive<Record<string, string>>({ search: '', active: '' });
 const form = reactive<Record<string, any>>({});
 const remoteOptions = reactive<Record<string, SelectOption[]>>({});
+const institutionLeaderForms = ref<InstitutionLeaderForm[]>([]);
 
 let debounceTimer: number | undefined;
 let controller: AbortController | null = null;
 let requestId = 0;
+let syncingFilters = false;
 
 const resourceKey = computed(() => String(route.meta.resourceKey ?? route.params.resource ?? ''));
 const config = computed(() => resourceConfigs[resourceKey.value]);
-const isCatalogRoute = computed(() => route.name === 'catalogs');
 const canManage = computed(() => Boolean(config.value?.manageCapability && can(auth.user?.role, config.value.manageCapability)));
 const visibleFields = computed(() => config.value?.fields.filter((field) => !(formMode.value === 'edit' && field.createOnly)) ?? []);
-const visibleTabs = computed(() => catalogTabs.filter((tab) => can(auth.user?.role, tab.readCapability)));
+const showInstitutionLeaders = computed(() => resourceKey.value === 'instituciones' && canManage.value);
+const modalTitle = computed(() => {
+  const name = config.value?.formTitle ?? config.value?.title ?? 'registro';
+  return formMode.value === 'create' ? `Nuevo ${name}` : `Editar ${name}`;
+});
+
+function newLocalId() {
+  return crypto.randomUUID?.() ?? Math.random().toString(36).slice(2);
+}
+
+function makeInstitutionLeader(row?: Row): InstitutionLeaderForm {
+  return {
+    localId: newLocalId(),
+    id: row?.id ? String(row.id) : undefined,
+    nationalId: String(row?.national_id ?? ''),
+    firstNames: String(row?.first_names ?? ''),
+    lastNames: String(row?.last_names ?? ''),
+    position: String(row?.position ?? ''),
+    active: row?.active === undefined ? true : Boolean(row.active),
+  };
+}
+
+function addInstitutionLeader() {
+  institutionLeaderForms.value.push(makeInstitutionLeader());
+}
+
+function removeInstitutionLeader(index: number) {
+  institutionLeaderForms.value.splice(index, 1);
+  if (institutionLeaderForms.value.length === 0) {
+    addInstitutionLeader();
+  }
+}
 
 function getValue(row: Row, key: string) {
   return key.split('.').reduce<unknown>((value, part) => {
@@ -263,7 +362,22 @@ function fieldOptions(field: FieldConfig) {
   return field.options ?? remoteOptions[field.name] ?? [];
 }
 
+function resetFilterState() {
+  for (const key of Object.keys(filters)) {
+    delete filters[key];
+  }
+
+  filters.search = '';
+  filters.active = '';
+
+  for (const filter of config.value?.filters ?? []) {
+    filters[filter.key] = '';
+  }
+}
+
 function syncFiltersFromQuery() {
+  syncingFilters = true;
+  resetFilterState();
   const query = route.query;
   filters.search = String(query.search ?? '');
   filters.active = String(query.active ?? '');
@@ -272,6 +386,7 @@ function syncFiltersFromQuery() {
   for (const filter of config.value?.filters ?? []) {
     filters[filter.key] = String(query[filter.key] ?? '');
   }
+  syncingFilters = false;
 }
 
 function buildParams() {
@@ -280,8 +395,10 @@ function buildParams() {
     pageSize: pagination.pageSize,
   };
 
+  const allowedKeys = new Set(['search', 'active', ...(config.value?.filters ?? []).map((filter) => filter.key)]);
+
   for (const [key, value] of Object.entries(filters)) {
-    if (value !== '') {
+    if (allowedKeys.has(key) && value !== '') {
       params[key] = key === 'active' ? value === 'true' : value;
     }
   }
@@ -327,8 +444,10 @@ function scheduleLoad() {
   window.clearTimeout(debounceTimer);
   debounceTimer = window.setTimeout(async () => {
     const query: Record<string, string> = {};
+    const allowedKeys = new Set(['search', 'active', ...(config.value?.filters ?? []).map((filter) => filter.key)]);
+
     for (const [key, value] of Object.entries(filters)) {
-      if (value !== '') {
+      if (allowedKeys.has(key) && value !== '') {
         query[key] = value;
       }
     }
@@ -370,6 +489,7 @@ async function openCreate() {
   selectedRow.value = null;
   formError.value = '';
   resetForm();
+  institutionLeaderForms.value = resourceKey.value === 'instituciones' ? [makeInstitutionLeader()] : [];
   formOpen.value = true;
   await loadFormOptions();
 }
@@ -379,8 +499,22 @@ async function openEdit(row: Row) {
   selectedRow.value = row;
   formError.value = '';
   resetForm(row);
+  institutionLeaderForms.value = [];
   formOpen.value = true;
   await loadFormOptions();
+
+  if (resourceKey.value === 'instituciones') {
+    await loadInstitutionLeaders(String(row.id));
+  }
+}
+
+async function loadInstitutionLeaders(institutionId: string) {
+  const response = await listResource<Row>('/lideres', { pageSize: 100, institutionId });
+  institutionLeaderForms.value = response.data.map((leader) => makeInstitutionLeader(leader));
+
+  if (institutionLeaderForms.value.length === 0) {
+    institutionLeaderForms.value = [makeInstitutionLeader()];
+  }
 }
 
 async function loadFormOptions() {
@@ -422,7 +556,30 @@ function buildBody() {
   return body;
 }
 
+function validateInstitutionLeaders() {
+  if (resourceKey.value !== 'instituciones') {
+    return '';
+  }
+
+  const activeLeaders = institutionLeaderForms.value.filter((leader) => leader.active);
+  if (activeLeaders.length === 0) {
+    return 'Registra al menos un líder activo para la institución.';
+  }
+
+  for (const leader of activeLeaders) {
+    if (!leader.nationalId || !leader.firstNames || !leader.lastNames || !leader.position) {
+      return 'Completa identificación, nombres, apellidos y cargo de cada líder activo.';
+    }
+  }
+
+  return '';
+}
+
 function validateBeforeSubmit(body: Record<string, unknown>) {
+  if (resourceKey.value === 'users' && formMode.value === 'create' && !body.password) {
+    return 'La contraseña es obligatoria para crear un usuario.';
+  }
+
   if (resourceKey.value === 'users' && formMode.value === 'edit' && selectedRow.value?.id === auth.user?.id && body.active === false) {
     return 'No puedes desactivar tu propia cuenta.';
   }
@@ -432,7 +589,35 @@ function validateBeforeSubmit(body: Record<string, unknown>) {
     return 'La contraseña debe tener al menos 12 caracteres.';
   }
 
+  const institutionLeaderMessage = validateInstitutionLeaders();
+  if (institutionLeaderMessage) {
+    return institutionLeaderMessage;
+  }
+
   return '';
+}
+
+async function saveInstitutionLeaders(institutionId: string) {
+  if (resourceKey.value !== 'instituciones') {
+    return;
+  }
+
+  for (const leader of institutionLeaderForms.value) {
+    const body = {
+      institutionId,
+      nationalId: leader.nationalId,
+      firstNames: leader.firstNames,
+      lastNames: leader.lastNames,
+      position: leader.position,
+      active: leader.active,
+    };
+
+    if (leader.id) {
+      await updateResource('/lideres', leader.id, body);
+    } else {
+      await createResource('/lideres', body);
+    }
+  }
 }
 
 async function submitForm() {
@@ -452,13 +637,19 @@ async function submitForm() {
   formError.value = '';
 
   try {
+    let savedRow: Row | null = null;
+
     if (formMode.value === 'create') {
-      await createResource(config.value.endpoint, body);
+      savedRow = await createResource<Row>(config.value.endpoint, body);
     } else if (selectedRow.value) {
-      await updateResource(config.value.endpoint, selectedRow.value.id, body);
+      savedRow = await updateResource<Row>(config.value.endpoint, selectedRow.value.id, body);
       if (resourceKey.value === 'users' && selectedRow.value.id === auth.user?.id) {
         await auth.syncUser();
       }
+    }
+
+    if (savedRow?.id) {
+      await saveInstitutionLeaders(String(savedRow.id));
     }
 
     toast.success('Registro guardado');
@@ -484,6 +675,10 @@ watch(
 watch(
   filters,
   () => {
+    if (syncingFilters) {
+      return;
+    }
+
     pagination.page = 1;
     scheduleLoad();
   },

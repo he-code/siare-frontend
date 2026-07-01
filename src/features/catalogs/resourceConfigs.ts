@@ -44,6 +44,9 @@ export interface FilterConfig {
 export interface ResourceConfig {
   key: string;
   title: string;
+  formTitle?: string;
+  description?: string;
+  createLabel?: string;
   endpoint: string;
   readCapability: Capability;
   manageCapability?: Capability;
@@ -72,6 +75,9 @@ export const resourceConfigs: Record<string, ResourceConfig> = {
   users: {
     key: 'users',
     title: 'Usuarios',
+    formTitle: 'usuario',
+    description: 'Administra cuentas, roles y estado de acceso al sistema.',
+    createLabel: 'Nuevo usuario',
     endpoint: '/users',
     readCapability: 'users.manage',
     manageCapability: 'users.manage',
@@ -88,7 +94,7 @@ export const resourceConfigs: Record<string, ResourceConfig> = {
     fields: [
       { name: 'name', label: 'Nombre', type: 'text', required: true, minLength: 2, maxLength: 150 },
       { name: 'email', label: 'Email', type: 'email', required: true, maxLength: 150 },
-      { name: 'password', label: 'Contraseña', type: 'password', minLength: 12, maxLength: 200, omitWhenEmpty: true },
+      { name: 'password', label: 'Contraseña', type: 'password', required: true, minLength: 12, maxLength: 200, omitWhenEmpty: true },
       { name: 'role', label: 'Rol', type: 'select', required: true, options: roleOptions },
       { name: 'position', label: 'Cargo', type: 'text', maxLength: 150, omitWhenEmpty: true },
       { name: 'active', label: 'Activo', type: 'checkbox' },
@@ -97,6 +103,9 @@ export const resourceConfigs: Record<string, ResourceConfig> = {
   categorias: {
     key: 'categorias',
     title: 'Categorías',
+    formTitle: 'categoría',
+    description: 'Clasifica los materiales para búsquedas, reportes y control de inventario.',
+    createLabel: 'Nueva categoría',
     endpoint: '/categorias',
     readCapability: 'catalogs.read',
     manageCapability: 'catalogs.manage',
@@ -118,6 +127,9 @@ export const resourceConfigs: Record<string, ResourceConfig> = {
   'unidades-medida': {
     key: 'unidades-medida',
     title: 'Unidades de medida',
+    formTitle: 'unidad de medida',
+    description: 'Define las unidades que se usarán al registrar cantidades en actas e inventario.',
+    createLabel: 'Nueva unidad',
     endpoint: '/unidades-medida',
     readCapability: 'catalogs.read',
     manageCapability: 'catalogs.manage',
@@ -136,6 +148,9 @@ export const resourceConfigs: Record<string, ResourceConfig> = {
   'autoridades-distritales': {
     key: 'autoridades-distritales',
     title: 'Autoridades distritales',
+    formTitle: 'autoridad distrital',
+    description: 'Registra autoridades que autorizan o respaldan las actas de ingreso.',
+    createLabel: 'Nueva autoridad',
     endpoint: '/autoridades-distritales',
     readCapability: 'authorities.manage',
     manageCapability: 'authorities.manage',
@@ -160,7 +175,10 @@ export const resourceConfigs: Record<string, ResourceConfig> = {
   },
   instituciones: {
     key: 'instituciones',
-    title: 'Instituciones',
+    title: 'Instituciones y líderes',
+    formTitle: 'institución',
+    description: 'Crea la institución y sus líderes en el mismo flujo, como se realiza en el proceso real.',
+    createLabel: 'Nueva institución',
     endpoint: '/instituciones',
     readCapability: 'catalogs.read',
     manageCapability: 'catalogs.manage',
@@ -189,6 +207,9 @@ export const resourceConfigs: Record<string, ResourceConfig> = {
   lideres: {
     key: 'lideres',
     title: 'Líderes',
+    formTitle: 'líder',
+    description: 'Mantenimiento directo de líderes. El registro normal se realiza desde Instituciones y líderes.',
+    createLabel: 'Nuevo líder',
     endpoint: '/lideres',
     readCapability: 'catalogs.read',
     manageCapability: 'catalogs.manage',
@@ -230,6 +251,9 @@ export const resourceConfigs: Record<string, ResourceConfig> = {
   materiales: {
     key: 'materiales',
     title: 'Materiales',
+    formTitle: 'material',
+    description: 'Consulta y mantiene la ficha de materiales ya registrados en inventario.',
+    createLabel: 'Nuevo material',
     endpoint: '/materiales',
     readCapability: 'catalogs.read',
     manageCapability: 'catalogs.manage',
@@ -281,6 +305,9 @@ export const resourceConfigs: Record<string, ResourceConfig> = {
   'procesos-adquisicion': {
     key: 'procesos-adquisicion',
     title: 'Procesos de adquisición',
+    formTitle: 'proceso de adquisición',
+    description: 'Registra el soporte de compra que puede asociarse a un acta de ingreso.',
+    createLabel: 'Nuevo proceso',
     endpoint: '/procesos-adquisicion',
     readCapability: 'acquisitions.manage',
     manageCapability: 'acquisitions.manage',

@@ -16,6 +16,12 @@ declare module 'vue-router' {
 
 const routes: RouteRecordRaw[] = [
   {
+    path: '/',
+    name: 'welcome',
+    component: () => import('@/views/WelcomeView.vue'),
+    meta: { public: true, title: 'Inicio' },
+  },
+  {
     path: '/login',
     name: 'login',
     component: () => import('@/views/LoginView.vue'),
@@ -26,7 +32,7 @@ const routes: RouteRecordRaw[] = [
     component: MainLayout,
     children: [
       {
-        path: '',
+        path: 'dashboard',
         name: 'dashboard',
         component: () => import('@/features/dashboard/DashboardView.vue'),
         meta: { title: 'Dashboard', capability: 'inventory.summary' },

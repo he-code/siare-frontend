@@ -3,6 +3,7 @@
     <div class="page-header">
       <div>
         <h1>{{ isEditing ? `Editar ${config.singular}` : `Nueva ${config.singular}` }}</h1>
+        <p v-if="isEntry">Registra los materiales nuevos directamente en el acta de ingreso.</p>
       </div>
       <div class="topbar__actions">
         <RouterLink :to="config.basePath" class="button button--secondary">
@@ -84,6 +85,7 @@
         <div class="page-header">
           <div>
             <h2>Materiales</h2>
+            <p v-if="isEntry">Cada fila crea la ficha del material y luego lo agrega al acta.</p>
           </div>
           <AppButton type="button" variant="secondary" @click="addItem">
             <template #icon><Plus aria-hidden="true" /></template>
@@ -92,51 +94,112 @@
         </div>
 
         <div class="items-editor">
-          <div
-            v-for="(item, index) in currentItems"
-            :key="item.localId"
-            class="items-editor__row"
-            :class="{ 'items-editor__row--delivery': !isEntry }"
-          >
-            <label class="form-field">
-              <span>Material</span>
-              <select v-model="item.materialId" required>
-                <option value="">Selecciona</option>
-                <option v-for="option in materialOptions" :key="option.value" :value="option.value">{{ option.label }}</option>
-              </select>
-            </label>
-
-            <label class="form-field">
-              <span>Cantidad</span>
-              <input v-model="item.quantity" type="number" min="0.01" step="0.01" required />
-            </label>
-
+          <div v-for="(item, index) in currentItems" :key="item.localId" class="items-editor__row" :class="itemRowClass">
             <template v-if="isEntry && isEntryItem(item)">
-              <label class="form-field">
-                <span>Valor unitario</span>
-                <input v-model="item.unitValue" type="number" min="0" step="0.01" required />
-              </label>
-              <label class="form-field">
-                <span>IVA %</span>
-                <input v-model="item.vatPercentage" type="number" min="0" max="100" step="0.01" :disabled="!item.appliesVat" />
-              </label>
-              <div>
-                <label class="checkbox-field">
-                  <input v-model="item.appliesVat" type="checkbox" @change="syncVat(item)" />
-                  <span>Aplica IVA</span>
+              <div class="item-card__header">
+                <div>
+                  <strong>Material {{ index + 1 }}</strong>
+                  <p>{{ item.materialId ? 'Material ya creado para esta acta.' : 'Ingresa los datos del nuevo material.' }}</p>
+                </div>
+                <AppButton type="button" variant="ghost" icon-only aria-label="Quitar material" :disabled="currentItems.length === 1" @click="removeItem(index)">
+                  <template #icon><Trash2 aria-hidden="true" /></template>
+                </AppButton>
+              </div>
+
+              <div v-if="item.materialId" class="detail-grid">
+                <div class="detail-item">
+                  <span>Material</span>
+                  <strong>{{ item.materialName }}</strong>
+                </div>
+                <div class="detail-item">
+                  <span>Código</span>
+                  <strong>{{ item.materialCode || 'Sin código' }}</strong>
+                </div>
+              </div>
+
+              <div v-else class="field-grid">
+                <label class="form-field">
+                  <span>Código</span>
+                  <input v-model.trim="item.materialCode" maxlength="50" />
                 </label>
-                <div class="item-total">{{ entryPreview(item) }}</div>
+                <label class="form-field">
+                  <span>Nombre del material</span>
+                  <input v-model.trim="item.materialName" maxlength="200" required />
+                </label>
+                <label class="form-field">
+                  <span>Categoría</span>
+                  <select v-model="item.categoryId" required>
+                    <option value="">Selecciona</option>
+                    <option v-for="option in categoryOptions" :key="option.value" :value="option.value">{{ option.label }}</option>
+                  </select>
+                </label>
+                <label class="form-field">
+                  <span>Unidad de medida</span>
+                  <select v-model="item.measurementUnitId" required>
+                    <option value="">Selecciona</option>
+                    <option v-for="option in unitOptions" :key="option.value" :value="option.value">{{ option.label }}</option>
+                  </select>
+                </label>
+                <label class="form-field">
+                  <span>Stock mínimo</span>
+                  <input v-model="item.minimumStock" type="number" min="0" step="0.01" />
+                </label>
+                <label class="form-field field--full">
+                  <span>Descripción del material</span>
+                  <textarea v-model="item.description" maxlength="2000" rows="2" />
+                </label>
+              </div>
+
+              <div class="field-grid">
+                <label class="form-field">
+                  <span>Cantidad</span>
+                  <input v-model="item.quantity" type="number" min="0.01" step="0.01" required />
+                </label>
+                <label class="form-field">
+                  <span>Valor unitario</span>
+                  <input v-model="item.unitValue" type="number" min="0" step="0.01" required />
+                </label>
+                <label class="form-field">
+                  <span>IVA %</span>
+                  <input v-model="item.vatPercentage" type="number" min="0" max="100" step="0.01" :disabled="!item.appliesVat" />
+                </label>
+                <div>
+                  <label class="checkbox-field">
+                    <input v-model="item.appliesVat" type="checkbox" @change="syncVat(item)" />
+                    <span>Aplica IVA</span>
+                  </label>
+                  <div class="item-total">{{ entryPreview(item) }}</div>
+                </div>
+                <label class="form-field field--full">
+                  <span>Notas</span>
+                  <input v-model="item.notes" maxlength="1000" />
+                </label>
               </div>
             </template>
 
-            <label v-else class="form-field">
-              <span>Notas</span>
-              <input v-model="item.notes" maxlength="1000" />
-            </label>
+            <template v-else>
+              <label class="form-field">
+                <span>Material</span>
+                <select v-model="item.materialId" required>
+                  <option value="">Selecciona</option>
+                  <option v-for="option in materialOptions" :key="option.value" :value="option.value">{{ option.label }}</option>
+                </select>
+              </label>
 
-            <AppButton type="button" variant="ghost" icon-only aria-label="Quitar material" :disabled="currentItems.length === 1" @click="removeItem(index)">
-              <template #icon><Trash2 aria-hidden="true" /></template>
-            </AppButton>
+              <label class="form-field">
+                <span>Cantidad</span>
+                <input v-model="item.quantity" type="number" min="0.01" step="0.01" required />
+              </label>
+
+              <label class="form-field">
+                <span>Notas</span>
+                <input v-model="item.notes" maxlength="1000" />
+              </label>
+
+              <AppButton type="button" variant="ghost" icon-only aria-label="Quitar material" :disabled="currentItems.length === 1" @click="removeItem(index)">
+                <template #icon><Trash2 aria-hidden="true" /></template>
+              </AppButton>
+            </template>
           </div>
         </div>
 
@@ -152,7 +215,7 @@ import { computed, onMounted, reactive, ref, watch } from 'vue';
 import { useRoute, useRouter } from 'vue-router';
 
 import { api, extractErrorMessage } from '@/api/http';
-import { listResource } from '@/api/resources';
+import { createResource, listResource } from '@/api/resources';
 import AppButton from '@/components/AppButton.vue';
 import EmptyState from '@/components/EmptyState.vue';
 import LoadingBlock from '@/components/LoadingBlock.vue';
@@ -169,6 +232,12 @@ interface Option {
 interface EntryFormItem {
   localId: string;
   materialId: string;
+  materialCode: string;
+  materialName: string;
+  categoryId: string;
+  measurementUnitId: string;
+  minimumStock: string;
+  description: string;
   quantity: string;
   unitValue: string;
   appliesVat: boolean;
@@ -191,11 +260,14 @@ const config = computed(() => actConfigs[route.meta.actKind as ActKind]);
 const isEntry = computed(() => config.value.kind === 'entry');
 const isEditing = computed(() => Boolean(route.params.id));
 const id = computed(() => String(route.params.id ?? ''));
+const itemRowClass = computed(() => (isEntry.value ? 'items-editor__row--entry' : 'items-editor__row--delivery'));
 const loading = ref(false);
 const saving = ref(false);
 const loadError = ref('');
 const formError = ref('');
 const materialOptions = ref<Option[]>([]);
+const categoryOptions = ref<Option[]>([]);
+const unitOptions = ref<Option[]>([]);
 const authorityOptions = ref<Option[]>([]);
 const acquisitionOptions = ref<Option[]>([]);
 const institutionOptions = ref<Option[]>([]);
@@ -230,6 +302,12 @@ function makeEntryItem(): EntryFormItem {
   return {
     localId: newLocalId(),
     materialId: '',
+    materialCode: '',
+    materialName: '',
+    categoryId: '',
+    measurementUnitId: '',
+    minimumStock: '',
+    description: '',
     quantity: '1',
     unitValue: '0',
     appliesVat: false,
@@ -275,10 +353,12 @@ function optionLabel(row: Record<string, unknown>, keys: string[]) {
 }
 
 async function loadOptions() {
-  const [materials] = await Promise.all([
-    listResource<Record<string, unknown>>('/materiales', { pageSize: 100, active: true }),
-    isEntry.value ? loadEntryOptions() : loadDeliveryOptions(),
-  ]);
+  if (isEntry.value) {
+    await loadEntryOptions();
+    return;
+  }
+
+  const [materials] = await Promise.all([listResource<Record<string, unknown>>('/materiales', { pageSize: 100, active: true }), loadDeliveryOptions()]);
 
   materialOptions.value = materials.data.map((item) => ({
     value: String(item.id),
@@ -287,9 +367,11 @@ async function loadOptions() {
 }
 
 async function loadEntryOptions() {
-  const [authorities, acquisitions] = await Promise.all([
+  const [authorities, acquisitions, categories, units] = await Promise.all([
     listResource<Record<string, unknown>>('/autoridades-distritales', { pageSize: 100, active: true }),
     listResource<Record<string, unknown>>('/procesos-adquisicion', { pageSize: 100 }),
+    listResource<Record<string, unknown>>('/categorias', { pageSize: 100, active: true }),
+    listResource<Record<string, unknown>>('/unidades-medida', { pageSize: 100 }),
   ]);
 
   authorityOptions.value = authorities.data.map((item) => ({
@@ -300,6 +382,16 @@ async function loadEntryOptions() {
   acquisitionOptions.value = acquisitions.data.map((item) => ({
     value: String(item.id),
     label: optionLabel(item, ['process_code', 'supplier_name', 'support_document']) || String(item.id),
+  }));
+
+  categoryOptions.value = categories.data.map((item) => ({
+    value: String(item.id),
+    label: optionLabel(item, ['name']) || String(item.id),
+  }));
+
+  unitOptions.value = units.data.map((item) => ({
+    value: String(item.id),
+    label: optionLabel(item, ['name', 'abbreviation']) || String(item.id),
   }));
 }
 
@@ -346,6 +438,12 @@ function mapDetail(detail: ActDetail) {
     entryForm.items = entry.items.map((item) => ({
       localId: newLocalId(),
       materialId: item.material_id,
+      materialCode: item.material_code ?? '',
+      materialName: item.material_name,
+      categoryId: '',
+      measurementUnitId: '',
+      minimumStock: '',
+      description: '',
       quantity: item.quantity,
       unitValue: item.unit_value,
       appliesVat: item.applies_vat,
@@ -408,7 +506,82 @@ function duplicatedMaterialMessage(items: Array<EntryFormItem | DeliveryFormItem
   return new Set(selected).size !== selected.length ? 'No puedes repetir materiales dentro del acta.' : '';
 }
 
-function buildEntryBody() {
+function validateEntryItems() {
+  if (entryForm.items.length === 0) {
+    return 'Agrega al menos un material.';
+  }
+
+  const newCodes = new Set<string>();
+  const newNames = new Set<string>();
+
+  for (const [index, item] of entryForm.items.entries()) {
+    const row = `Material ${index + 1}`;
+    const quantity = Number(item.quantity);
+    const unitValue = Number(item.unitValue);
+    const vat = item.appliesVat ? Number(item.vatPercentage) : 0;
+
+    if (!quantity || quantity <= 0 || Number.isNaN(quantity)) {
+      return `${row}: la cantidad debe ser mayor a 0.`;
+    }
+
+    if (unitValue < 0 || Number.isNaN(unitValue)) {
+      return `${row}: el valor unitario no puede ser negativo.`;
+    }
+
+    if (item.appliesVat && (vat < 0 || vat > 100 || Number.isNaN(vat))) {
+      return `${row}: el IVA debe estar entre 0 y 100.`;
+    }
+
+    if (!item.materialId) {
+      if (!item.materialName || !item.categoryId || !item.measurementUnitId) {
+        return `${row}: completa nombre, categoría y unidad de medida del material nuevo.`;
+      }
+
+      const normalizedName = item.materialName.trim().toLowerCase();
+      if (newNames.has(normalizedName)) {
+        return `${row}: no repitas el nombre del material en la misma acta.`;
+      }
+      newNames.add(normalizedName);
+
+      const normalizedCode = item.materialCode.trim().toLowerCase();
+      if (normalizedCode) {
+        if (newCodes.has(normalizedCode)) {
+          return `${row}: no repitas el código del material en la misma acta.`;
+        }
+        newCodes.add(normalizedCode);
+      }
+    }
+  }
+
+  return '';
+}
+
+async function ensureEntryMaterialsCreated() {
+  for (const item of entryForm.items) {
+    if (item.materialId) {
+      continue;
+    }
+
+    const created = await createResource<{ id: string }>('/materiales', {
+      categoryId: item.categoryId,
+      measurementUnitId: item.measurementUnitId,
+      code: item.materialCode || null,
+      name: item.materialName,
+      minimumStock: item.minimumStock === '' ? null : Number(item.minimumStock),
+      description: item.description || null,
+      active: true,
+    });
+
+    item.materialId = String(created.id);
+  }
+}
+
+async function buildEntryBody() {
+  const validationMessage = validateEntryItems();
+  if (validationMessage) return { error: validationMessage };
+
+  await ensureEntryMaterialsCreated();
+
   const duplicateMessage = duplicatedMaterialMessage(entryForm.items);
   if (duplicateMessage) return { error: duplicateMessage };
 
@@ -452,17 +625,26 @@ function buildDeliveryBody() {
 }
 
 async function submit() {
-  const result = isEntry.value ? buildEntryBody() : buildDeliveryBody();
+  formError.value = '';
 
-  if ('error' in result) {
-    formError.value = result.error ?? '';
-    return;
+  if (isEntry.value) {
+    const preValidation = validateEntryItems();
+    if (preValidation) {
+      formError.value = preValidation;
+      return;
+    }
   }
 
   saving.value = true;
-  formError.value = '';
 
   try {
+    const result = isEntry.value ? await buildEntryBody() : buildDeliveryBody();
+
+    if ('error' in result) {
+      formError.value = result.error ?? '';
+      return;
+    }
+
     const response = isEditing.value
       ? await api.put<DataResponse<ActDetail>>(`${config.value.endpoint}/${id.value}`, result.body)
       : await api.post<DataResponse<ActDetail>>(config.value.endpoint, result.body);
