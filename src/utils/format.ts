@@ -32,21 +32,41 @@ export function formatDateTime(value?: string | null) {
   }).format(date);
 }
 
-export function formatDecimal(value?: string | number | null, minimumFractionDigits = 2) {
-  if (value === null || value === undefined || value === '') {
-    return '0,00';
+function normalizeDecimalInput(value: string | number) {
+  if (typeof value === 'number') {
+    return value;
   }
 
-  const numeric = typeof value === 'number' ? value : Number(value);
+  return Number(value.replace(',', '.'));
+}
+
+function formatDecimalParts(numeric: number, minimumFractionDigits: number) {
+  const maxFractionDigits = 2;
+  const minFractionDigits = Math.max(0, Math.min(minimumFractionDigits, maxFractionDigits));
+  const sign = numeric < 0 ? '-' : '';
+  const [rawInteger, rawFraction = ''] = Math.abs(numeric).toFixed(maxFractionDigits).split('.');
+  const integer = rawInteger.replace(/\B(?=(\d{3})+(?!\d))/g, '.');
+  let fraction = rawFraction;
+
+  while (fraction.length > minFractionDigits && fraction.endsWith('0')) {
+    fraction = fraction.slice(0, -1);
+  }
+
+  return fraction ? `${sign}${integer},${fraction}` : `${sign}${integer}`;
+}
+
+export function formatDecimal(value?: string | number | null, minimumFractionDigits = 2) {
+  if (value === null || value === undefined || value === '') {
+    return formatDecimalParts(0, minimumFractionDigits);
+  }
+
+  const numeric = normalizeDecimalInput(value);
 
   if (Number.isNaN(numeric)) {
     return String(value);
   }
 
-  return new Intl.NumberFormat('es-EC', {
-    minimumFractionDigits,
-    maximumFractionDigits: 2,
-  }).format(numeric);
+  return formatDecimalParts(numeric, minimumFractionDigits);
 }
 
 export function formatMoney(value?: string | number | null) {

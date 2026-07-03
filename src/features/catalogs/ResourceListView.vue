@@ -193,6 +193,7 @@
 </template>
 
 <script setup lang="ts">
+import axios from 'axios';
 import { CircleAlert, Pencil, Plus, Trash2 } from 'lucide-vue-next';
 import { computed, reactive, ref, watch } from 'vue';
 import { useRoute, useRouter } from 'vue-router';
@@ -262,6 +263,79 @@ const modalTitle = computed(() => {
   const name = config.value?.formTitle ?? config.value?.title ?? 'registro';
   return formMode.value === 'create' ? `Nuevo ${name}` : `Editar ${name}`;
 });
+
+function shouldTryFallback(error: unknown) {
+  if (!axios.isAxiosError(error)) {
+    return false;
+  }
+
+  return [404, 405].includes(error.response?.status ?? 0);
+}
+
+function configuredEndpoints() {
+  if (!config.value) {
+    return [];
+  }
+
+  return [config.value.endpoint, ...(config.value.fallbackEndpoints ?? [])];
+}
+
+async function listCurrentResource<T>(params: Record<string, string | number | boolean>, signal?: AbortSignal) {
+  let lastError: unknown;
+  const endpoints = configuredEndpoints();
+
+  for (const [index, endpoint] of endpoints.entries()) {
+    try {
+      return await listResource<T>(endpoint, params, signal);
+    } catch (resourceError) {
+      lastError = resourceError;
+
+      if (index === endpoints.length - 1 || !shouldTryFallback(resourceError)) {
+        throw resourceError;
+      }
+    }
+  }
+
+  throw lastError;
+}
+
+async function createCurrentResource<T>(body: Record<string, unknown>) {
+  let lastError: unknown;
+  const endpoints = configuredEndpoints();
+
+  for (const [index, endpoint] of endpoints.entries()) {
+    try {
+      return await createResource<T>(endpoint, body);
+    } catch (resourceError) {
+      lastError = resourceError;
+
+      if (index === endpoints.length - 1 || !shouldTryFallback(resourceError)) {
+        throw resourceError;
+      }
+    }
+  }
+
+  throw lastError;
+}
+
+async function updateCurrentResource<T>(id: string, body: Record<string, unknown>) {
+  let lastError: unknown;
+  const endpoints = configuredEndpoints();
+
+  for (const [index, endpoint] of endpoints.entries()) {
+    try {
+      return await updateResource<T>(endpoint, id, body);
+    } catch (resourceError) {
+      lastError = resourceError;
+
+      if (index === endpoints.length - 1 || !shouldTryFallback(resourceError)) {
+        throw resourceError;
+      }
+    }
+  }
+
+  throw lastError;
+}
 
 function newLocalId() {
   return crypto.randomUUID?.() ?? Math.random().toString(36).slice(2);
@@ -423,7 +497,7 @@ async function loadRows() {
   error.value = '';
 
   try {
-    const response = await listResource<Row>(config.value.endpoint, buildParams(), controller.signal);
+    const response = await listCurrentResource<Row>(buildParams(), controller.signal);
 
     if (currentRequest === requestId) {
       rows.value = response.data;
@@ -640,9 +714,9 @@ async function submitForm() {
     let savedRow: Row | null = null;
 
     if (formMode.value === 'create') {
-      savedRow = await createResource<Row>(config.value.endpoint, body);
+      savedRow = await createCurrentResource<Row>(body);
     } else if (selectedRow.value) {
-      savedRow = await updateResource<Row>(config.value.endpoint, selectedRow.value.id, body);
+      savedRow = await updateCurrentResource<Row>(selectedRow.value.id, body);
       if (resourceKey.value === 'users' && selectedRow.value.id === auth.user?.id) {
         await auth.syncUser();
       }

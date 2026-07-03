@@ -23,6 +23,7 @@
             <input v-model="password" type="password" autocomplete="current-password" minlength="8" maxlength="200" required />
           </label>
 
+          <p v-if="sessionMessage" class="alert alert--info">{{ sessionMessage }}</p>
           <p v-if="error" class="alert">{{ error }}</p>
 
           <AppButton type="submit" variant="primary" :busy="loading">
@@ -37,7 +38,7 @@
 
 <script setup lang="ts">
 import { LogIn, PackageCheck } from 'lucide-vue-next';
-import { ref } from 'vue';
+import { computed, ref } from 'vue';
 import { useRoute, useRouter } from 'vue-router';
 
 import { extractErrorMessage } from '@/api/http';
@@ -51,6 +52,9 @@ const email = ref('');
 const password = ref('');
 const loading = ref(false);
 const error = ref('');
+const sessionMessage = computed(() =>
+  route.query.session === 'expired' ? 'Tu sesión expiró o dejó de ser válida. Inicia sesión nuevamente.' : '',
+);
 
 async function submit() {
   loading.value = true;
@@ -58,7 +62,7 @@ async function submit() {
 
   try {
     await auth.login({ email: email.value.toLowerCase(), password: password.value });
-    await router.replace(String(route.query.redirect ?? '/'));
+    await router.replace(String(route.query.redirect ?? '/dashboard'));
   } catch (loginError) {
     error.value = extractErrorMessage(loginError);
   } finally {

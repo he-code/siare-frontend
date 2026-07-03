@@ -6,7 +6,9 @@
       </div>
     </div>
 
-    <form class="detail-panel section-grid" @submit.prevent="openConfirm">
+    <LoadingBlock v-if="loadingMaterials" />
+
+    <form v-else class="detail-panel section-grid" @submit.prevent="openConfirm">
       <div class="field-grid">
         <label class="form-field">
           <span>Material</span>
@@ -64,6 +66,7 @@ import { computed, onMounted, ref } from 'vue';
 import { api, extractErrorMessage } from '@/api/http';
 import { listResource } from '@/api/resources';
 import AppButton from '@/components/AppButton.vue';
+import LoadingBlock from '@/components/LoadingBlock.vue';
 import ConfirmDialog from '@/components/ConfirmDialog.vue';
 import { useToastStore } from '@/stores/toast';
 import { formatDecimal } from '@/utils/format';
@@ -80,6 +83,7 @@ const materialId = ref('');
 const difference = ref('');
 const reason = ref('');
 const error = ref('');
+const loadingMaterials = ref(false);
 const saving = ref(false);
 const confirmOpen = ref(false);
 
@@ -93,12 +97,22 @@ const resultingStock = computed(() => {
 const canSubmit = computed(() => Boolean(materialId.value && reason.value.length >= 5 && numericDifference.value !== 0 && resultingStock.value >= 0));
 
 async function loadMaterials() {
-  const response = await listResource<Record<string, unknown>>('/materiales', { pageSize: 100, active: true });
-  materialOptions.value = response.data.map((item) => ({
-    value: String(item.id),
-    label: [item.code, item.name].filter(Boolean).join(' · '),
-    stock: String(item.current_stock ?? '0'),
-  }));
+  loadingMaterials.value = true;
+  error.value = '';
+
+  try {
+    const response = await listResource<Record<string, unknown>>('/materiales', { pageSize: 100, active: true });
+    materialOptions.value = response.data.map((item) => ({
+      value: String(item.id),
+      label: [item.code, item.name].filter(Boolean).join(' · '),
+      stock: String(item.current_stock ?? '0'),
+    }));
+  } catch (loadError) {
+    materialOptions.value = [];
+    error.value = `No se pudieron cargar los materiales: ${extractErrorMessage(loadError)}`;
+  } finally {
+    loadingMaterials.value = false;
+  }
 }
 
 function openConfirm() {

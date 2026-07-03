@@ -48,6 +48,7 @@ export interface ResourceConfig {
   description?: string;
   createLabel?: string;
   endpoint: string;
+  fallbackEndpoints?: string[];
   readCapability: Capability;
   manageCapability?: Capability;
   tab?: boolean;
@@ -79,6 +80,7 @@ export const resourceConfigs: Record<string, ResourceConfig> = {
     description: 'Administra cuentas, roles y estado de acceso al sistema.',
     createLabel: 'Nuevo usuario',
     endpoint: '/users',
+    fallbackEndpoints: ['/usuarios'],
     readCapability: 'users.manage',
     manageCapability: 'users.manage',
     search: true,

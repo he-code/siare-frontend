@@ -31,6 +31,34 @@
       </div>
 
       <section class="table-wrap">
+        <header class="section-title-row">
+          <h2>Alertas de stock</h2>
+        </header>
+        <table v-if="summary?.lowStockAlerts?.length" class="data-table">
+          <thead>
+            <tr>
+              <th>Material</th>
+              <th>Cantidad</th>
+              <th>Mínimo</th>
+              <th>Estado</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr v-for="item in summary.lowStockAlerts" :key="item.id">
+              <td>{{ item.name }}</td>
+              <td>{{ formatDecimal(item.current_stock) }} {{ item.unit_abbreviation ?? item.unit_name }}</td>
+              <td>{{ item.minimum_stock ? formatDecimal(item.minimum_stock) : 'Sin mínimo' }}</td>
+              <td><StatusBadge :value="Number(item.current_stock) <= 0 ? 'agotado' : 'bajo_stock'" /></td>
+            </tr>
+          </tbody>
+        </table>
+        <EmptyState v-else title="No hay materiales con bajo stock" />
+      </section>
+
+      <section class="table-wrap">
+        <header class="section-title-row">
+          <h2>Movimientos recientes</h2>
+        </header>
         <table v-if="summary?.latestMovements?.length" class="data-table">
           <thead>
             <tr>

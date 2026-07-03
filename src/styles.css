@@ -64,7 +64,10 @@ svg {
   position: sticky;
   top: 0;
   height: 100vh;
+  height: 100dvh;
   padding: 18px 14px;
+  overflow-y: auto;
+  overscroll-behavior: contain;
   background: #152029;
   color: #f7fafc;
   border-right: 1px solid #263644;
@@ -87,6 +90,7 @@ svg {
 .main-nav {
   display: grid;
   gap: 4px;
+  padding-bottom: 18px;
 }
 
 .main-nav__group {
@@ -309,6 +313,10 @@ svg {
   height: 18px;
 }
 
+.checkbox-field--inline {
+  align-self: end;
+}
+
 .button {
   min-height: 40px;
   display: inline-flex;
@@ -379,6 +387,18 @@ svg {
   }
 }
 
+.section-title-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 10px;
+}
+
+.section-title-row h2 {
+  margin: 0;
+  font-size: 1rem;
+}
+
 .table-wrap {
   overflow-x: auto;
 }
@@ -406,6 +426,12 @@ svg {
 
 .data-table tbody tr:hover {
   background: #f8fbfc;
+}
+
+.table-muted {
+  display: block;
+  margin-top: 4px;
+  color: var(--muted);
 }
 
 .data-table__actions {
@@ -628,6 +654,12 @@ svg {
   border: 1px solid #f4a79b;
   background: var(--danger-soft);
   color: var(--danger);
+}
+
+.alert--info {
+  border-color: #b7c8f5;
+  background: var(--info-soft);
+  color: var(--info);
 }
 
 .metrics-grid {
@@ -1109,4 +1141,28 @@ svg {
   .welcome-nav a[href="#proceso"] {
     display: none;
   }
+  }
+
+  @media (min-width: 901px) {
+  .app-shell--collapsed {
+    grid-template-columns: 0 minmax(0, 1fr);
+  }
+
+  .app-shell--collapsed .sidebar {
+    width: 0;
+    min-width: 0;
+    padding-inline: 0;
+    border-right: 0;
+    overflow: hidden;
+  }
+
+  .app-shell--collapsed .sidebar * {
+    opacity: 0;
+    pointer-events: none;
+  }
+
+  .topbar__menu {
+    display: inline-flex;
+  }
 }
+

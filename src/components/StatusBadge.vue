@@ -19,6 +19,9 @@ const statusMap: Record<string, { label: string; tone: string }> = {
   salida: { label: 'Salida', tone: 'warning' },
   ajuste: { label: 'Ajuste', tone: 'info' },
   anulacion: { label: 'Anulación', tone: 'cancelled' },
+  normal: { label: 'Normal', tone: 'issued' },
+  bajo_stock: { label: 'Bajo stock', tone: 'warning' },
+  agotado: { label: 'Agotado', tone: 'cancelled' },
   true: { label: 'Activo', tone: 'issued' },
   false: { label: 'Inactivo', tone: 'cancelled' },
 };

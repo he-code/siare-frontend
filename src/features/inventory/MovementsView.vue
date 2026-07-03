@@ -10,6 +10,8 @@
       </AppButton>
     </div>
 
+    <p v-if="filterError" class="alert">{{ filterError }}</p>
+
     <form class="toolbar" @submit.prevent="applyFilters">
       <div class="filters-grid">
         <label class="form-field">
@@ -99,6 +101,7 @@ const rows = ref<InventoryMovement[]>([]);
 const materialOptions = ref<Option[]>([]);
 const loading = ref(false);
 const error = ref('');
+const filterError = ref('');
 const pagination = reactive<Pagination>({ page: 1, pageSize: 20, total: 0, pages: 1 });
 const filters = reactive<Record<string, string>>({
   materialId: '',
@@ -163,16 +166,23 @@ function goToPage(page: number) {
 }
 
 async function loadMaterials() {
-  const response = await listResource<Record<string, unknown>>('/materiales', { pageSize: 100, active: true });
-  materialOptions.value = response.data.map((item) => ({
-    value: String(item.id),
-    label: [item.code, item.name].filter(Boolean).join(' · '),
-  }));
+  filterError.value = '';
+
+  try {
+    const response = await listResource<Record<string, unknown>>('/materiales', { pageSize: 100, active: true });
+    materialOptions.value = response.data.map((item) => ({
+      value: String(item.id),
+      label: [item.code, item.name].filter(Boolean).join(' · '),
+    }));
+  } catch (loadError) {
+    materialOptions.value = [];
+    filterError.value = `No se pudo cargar el filtro de materiales: ${extractErrorMessage(loadError)}`;
+  }
 }
 
 watch(filters, () => applyFilters(), { deep: true });
 
 onMounted(async () => {
-  await Promise.all([loadMaterials(), loadRows()]);
+  await Promise.allSettled([loadMaterials(), loadRows()]);
 });
 </script>

@@ -1,7 +1,8 @@
-import { createRouter, createWebHistory, type RouteRecordRaw } from 'vue-router';
+import { createRouter, createWebHistory, type RouteLocationNormalized, type RouteRecordRaw } from 'vue-router';
 
 import { useAuthStore } from '@/auth/session';
 import MainLayout from '@/components/MainLayout.vue';
+import { resourceConfigs } from '@/features/catalogs/resourceConfigs';
 import { can, type Capability } from '@/permissions/capabilities';
 
 declare module 'vue-router' {
@@ -104,6 +105,12 @@ const routes: RouteRecordRaw[] = [
         meta: { title: 'Detalle de entrega', capability: 'deliveryActs.read', actKind: 'delivery' },
       },
       {
+        path: 'inventario/existencias',
+        name: 'inventory-stock',
+        component: () => import('@/features/inventory/StockListView.vue'),
+        meta: { title: 'Existencias', capability: 'inventory.summary' },
+      },
+      {
         path: 'inventario/movimientos',
         name: 'inventory-movements',
         component: () => import('@/features/inventory/MovementsView.vue'),
@@ -111,9 +118,7 @@ const routes: RouteRecordRaw[] = [
       },
       {
         path: 'inventario/ajustes',
-        name: 'inventory-adjustments',
-        component: () => import('@/features/inventory/AdjustmentView.vue'),
-        meta: { title: 'Ajuste de stock', capability: 'inventory.adjust' },
+        redirect: '/inventario/existencias',
       },
       {
         path: '403',
@@ -131,6 +136,21 @@ const routes: RouteRecordRaw[] = [
   },
 ];
 
+
+function capabilityForRoute(to: RouteLocationNormalized): Capability | undefined {
+  if (to.name === 'catalogs') {
+    const resourceKey = String(to.params.resource ?? '');
+    return resourceConfigs[resourceKey]?.readCapability ?? 'catalogs.read';
+  }
+
+  if (to.meta.resourceKey) {
+    const resourceKey = String(to.meta.resourceKey);
+    return resourceConfigs[resourceKey]?.readCapability ?? to.meta.capability;
+  }
+
+  return to.meta.capability;
+}
+
 const router = createRouter({
   history: createWebHistory(),
   routes,
@@ -140,23 +160,25 @@ const router = createRouter({
 router.beforeEach(async (to) => {
   const auth = useAuthStore();
 
-  if (!auth.initialized) {
-    await auth.restore();
-  }
-
   if (to.meta.public) {
-    if (to.name === 'login' && auth.user) {
+    if (to.name === 'login' && auth.initialized && auth.user) {
       return { name: 'dashboard' };
     }
 
     return true;
   }
 
+  if (!auth.initialized) {
+    await auth.restore();
+  }
+
   if (!auth.user) {
     return { name: 'login', query: { redirect: to.fullPath } };
   }
 
-  if (to.meta.capability && !can(auth.user.role, to.meta.capability)) {
+  const requiredCapability = capabilityForRoute(to);
+
+  if (requiredCapability && !can(auth.user.role, requiredCapability)) {
     return { name: 'forbidden' };
   }
 

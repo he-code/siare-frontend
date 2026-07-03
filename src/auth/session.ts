@@ -1,6 +1,6 @@
 import { defineStore } from 'pinia';
 
-import { api, setAccessToken } from '@/api/http';
+import { api, getAccessToken, setAccessToken } from '@/api/http';
 import type { CurrentUser, DataResponse, LoginResponse, RefreshResponse } from '@/types/contracts';
 
 interface AuthState {
@@ -10,6 +10,40 @@ interface AuthState {
 }
 
 let refreshPromise: Promise<string | null> | null = null;
+
+const SESSION_STORAGE_KEY = 'siare.session';
+
+interface StoredSession {
+  accessToken: string;
+  user?: CurrentUser | null;
+}
+
+function readStoredSession(): StoredSession | null {
+  if (typeof window === 'undefined') {
+    return null;
+  }
+
+  try {
+    const raw = window.localStorage.getItem(SESSION_STORAGE_KEY);
+    return raw ? (JSON.parse(raw) as StoredSession) : null;
+  } catch {
+    window.localStorage.removeItem(SESSION_STORAGE_KEY);
+    return null;
+  }
+}
+
+function persistSession(accessToken: string | null, user: CurrentUser | null) {
+  if (typeof window === 'undefined') {
+    return;
+  }
+
+  if (!accessToken) {
+    window.localStorage.removeItem(SESSION_STORAGE_KEY);
+    return;
+  }
+
+  window.localStorage.setItem(SESSION_STORAGE_KEY, JSON.stringify({ accessToken, user }));
+}
 
 function normalizeLoginUser(user: LoginResponse['user']): CurrentUser {
   return {
@@ -34,6 +68,7 @@ export const useAuthStore = defineStore('auth', {
       this.user = normalizeLoginUser(response.data.user);
       this.status = 'authenticated';
       this.initialized = true;
+      persistSession(response.data.accessToken, this.user);
     },
     async refreshToken() {
       if (!refreshPromise) {
@@ -41,6 +76,7 @@ export const useAuthStore = defineStore('auth', {
           .post<RefreshResponse>('/auth/refresh')
           .then((response) => {
             setAccessToken(response.data.accessToken);
+            persistSession(response.data.accessToken, this.user);
             return response.data.accessToken;
           })
           .catch(() => {
@@ -58,6 +94,7 @@ export const useAuthStore = defineStore('auth', {
       const response = await api.get<DataResponse<CurrentUser>>('/auth/me');
       this.user = response.data.data;
       this.status = 'authenticated';
+      persistSession(getAccessToken(), this.user);
       return this.user;
     },
     async restore() {
@@ -66,6 +103,23 @@ export const useAuthStore = defineStore('auth', {
       }
 
       this.status = 'checking';
+
+      const storedSession = readStoredSession();
+      if (storedSession?.accessToken) {
+        setAccessToken(storedSession.accessToken);
+        this.user = null;
+
+        try {
+          await this.syncUser();
+          this.initialized = true;
+          return this.user;
+        } catch {
+          this.clearSession();
+          this.initialized = true;
+          return null;
+        }
+      }
+
       const token = await this.refreshToken();
 
       if (!token) {
@@ -94,6 +148,7 @@ export const useAuthStore = defineStore('auth', {
     },
     clearSession() {
       setAccessToken(null);
+      persistSession(null, null);
       this.user = null;
       this.status = 'guest';
     },

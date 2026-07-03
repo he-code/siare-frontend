@@ -6,7 +6,7 @@ describe('role capabilities', () => {
   it('allows administrador to manage protected modules', () => {
     expect(can('administrador', 'users.manage')).toBe(true);
     expect(can('administrador', 'entryActs.manage')).toBe(true);
-    expect(can('administrador', 'inventory.adjust')).toBe(true);
+    expect(can('administrador', 'inventory.summary')).toBe(true);
   });
 
   it('allows asistente_actas to manage delivery drafts but not cancellations', () => {
@@ -19,7 +19,7 @@ describe('role capabilities', () => {
     expect(can('consulta', 'entryActs.read')).toBe(true);
     expect(can('consulta', 'deliveryActs.read')).toBe(true);
     expect(can('consulta', 'entryActs.manage')).toBe(false);
-    expect(can('consulta', 'inventory.adjust')).toBe(false);
+    expect(can('consulta', 'users.manage')).toBe(false);
   });
 
   it('formats role labels', () => {

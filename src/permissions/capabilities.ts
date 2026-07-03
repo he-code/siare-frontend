@@ -12,8 +12,7 @@ export type Capability =
   | 'deliveryActs.manage'
   | 'deliveryActs.cancel'
   | 'inventory.summary'
-  | 'inventory.movements'
-  | 'inventory.adjust';
+  | 'inventory.movements';
 
 const roleCapabilities: Record<Role, Capability[]> = {
   administrador: [
@@ -29,7 +28,6 @@ const roleCapabilities: Record<Role, Capability[]> = {
     'deliveryActs.cancel',
     'inventory.summary',
     'inventory.movements',
-    'inventory.adjust',
   ],
   asistente_actas: [
     'catalogs.read',

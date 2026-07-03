@@ -15,13 +15,25 @@ app.use(router);
 
 const auth = useAuthStore(pinia);
 
+function redirectToLoginAfterUnauthorized() {
+  const currentRoute = router.currentRoute.value;
+
+  if (currentRoute.name === 'login' || currentRoute.meta.public) {
+    return;
+  }
+
+  void router.replace({
+    name: 'login',
+    query: { redirect: currentRoute.fullPath, session: 'expired' },
+  });
+}
+
 registerAuthHandlers({
   refresh: () => auth.refreshToken(),
   unauthorized: () => {
     auth.clearSession();
+    redirectToLoginAfterUnauthorized();
   },
 });
 
-auth.restore().finally(() => {
-  app.mount('#app');
-});
+app.mount('#app');

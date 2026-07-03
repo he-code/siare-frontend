@@ -1,6 +1,6 @@
 <template>
-  <div class="app-shell">
-    <aside class="sidebar" :class="{ 'sidebar--open': sidebarOpen }">
+  <div class="app-shell" :class="{ 'app-shell--collapsed': sidebarCollapsed }">
+    <aside class="sidebar" :class="{ 'sidebar--open': sidebarOpen, 'sidebar--collapsed': sidebarCollapsed }">
       <RouterLink class="brand" to="/dashboard">
         <PackageCheck aria-hidden="true" />
         <span>SIARE</span>
@@ -19,8 +19,9 @@
 
     <div class="content-shell">
       <header class="topbar">
-        <AppButton variant="ghost" icon-only class="topbar__menu" aria-label="Abrir menú" @click="sidebarOpen = !sidebarOpen">
+        <AppButton variant="ghost" icon-only class="topbar__menu" :aria-label="sidebarCollapsed ? 'Expandir menú' : 'Colapsar menú'" @click="toggleSidebar">
           <template #icon><Menu aria-hidden="true" /></template>
+
         </AppButton>
 
         <div class="topbar__title">
@@ -122,8 +123,8 @@ const menuGroups: MenuGroup[] = [
   {
     label: 'Inventario',
     items: [
+      { label: 'Existencias', to: '/inventario/existencias', icon: Boxes, capability: 'inventory.summary' },
       { label: 'Movimientos', to: '/inventario/movimientos', icon: ClipboardList, capability: 'inventory.movements' },
-      { label: 'Ajuste de stock', to: '/inventario/ajustes', icon: Boxes, capability: 'inventory.adjust' },
     ],
   },
   {
@@ -136,7 +137,16 @@ const auth = useAuthStore();
 const router = useRouter();
 const route = useRoute();
 const sidebarOpen = ref(false);
+const sidebarCollapsed = ref(false);
 const loggingOut = ref(false);
+
+function toggleSidebar(){
+  if (window.matchMedia('(max-width: 900px)').matches){
+    sidebarOpen.value = !sidebarOpen.value;
+    return;
+  }
+  sidebarCollapsed.value = !sidebarCollapsed.value;
+}
 
 const visibleMenuGroups = computed(() =>
   menuGroups

@@ -53,10 +53,29 @@ export interface RefreshResponse {
   tokenType: 'Bearer';
 }
 
+export interface InventoryStockItem {
+  id: Id;
+  code: string | null;
+  name: string;
+  description: string | null;
+  current_stock: DecimalString;
+  minimum_stock: DecimalString | null;
+  last_unit_value: DecimalString | null;
+  active: boolean;
+  category_id: Id;
+  category_name: string;
+  measurement_unit_id: Id;
+  unit_name: string;
+  unit_abbreviation: string | null;
+  low_stock: boolean;
+  stock_deficit: DecimalString;
+}
+
 export interface InventorySummary {
   active_materials: number;
   low_stock_materials: number;
   total_units: DecimalString;
+  lowStockAlerts?: InventoryStockItem[];
   latestMovements: Array<{
     id: Id;
     material_name: string;
