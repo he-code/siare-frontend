@@ -1,291 +1,101 @@
 # SIARE Frontend
 
-Frontend web del sistema **SIARE**, una aplicación para la gestión de inventario institucional, actas de ingreso, actas de entrega-recepción, catálogos administrativos y consulta de existencias.
+Frontend web de **SIARE**, un sistema para gestionar inventario institucional mediante actas de ingreso, actas de entrega-recepción, catálogos administrativos, usuarios, existencias y movimientos.
 
-Este proyecto forma parte de un sistema full stack desarrollado como portafolio, con frontend en Vue y backend en Node.js/Fastify.
+Este repositorio contiene la aplicación Vue que consume la API de [siare-backend](https://github.com/he-code/siare-backend). El proyecto ya está preparado para despliegue y para conectar con el backend publicado en Railway.
 
----
+## Enlaces
 
-## Descripción general
-
-SIARE permite organizar el flujo de inventario institucional mediante documentos formales. El sistema evita modificaciones manuales directas del stock y centraliza los movimientos a través de actas de ingreso y actas de entrega-recepción.
-
-El frontend ofrece una interfaz web para:
-
-- Consultar el estado del inventario.
-- Registrar actas de ingreso.
-- Registrar actas de entrega-recepción.
-- Consultar existencias actuales.
-- Revisar movimientos de inventario.
-- Gestionar catálogos institucionales.
-- Gestionar usuarios según roles.
-- Visualizar alertas de materiales con bajo stock.
-
----
-
-## Características principales
-
-- Vista pública antes del inicio de sesión.
-- Autenticación con token de acceso.
-- Validación de sesión al ingresar a rutas protegidas.
-- Menú lateral organizado por secciones.
-- Protección visual de rutas según rol.
-- Dashboard con resumen general del sistema.
-- Consulta de existencias actuales.
-- Alertas de bajo stock.
-- Historial de movimientos de inventario.
-- Registro y gestión de actas de ingreso.
-- Registro y gestión de actas de entrega-recepción.
-- Gestión de catálogos:
-  - Materiales.
-  - Categorías.
-  - Unidades de medida.
-  - Instituciones y líderes.
-  - Autoridades distritales.
-  - Procesos de adquisición.
-- Gestión de usuarios.
-- Diseño responsive para escritorio y pantallas reducidas.
-- Pruebas unitarias con Vitest.
-
----
-
-## Flujo de inventario
-
-El sistema sigue un flujo seguro para evitar alteraciones manuales del stock.
-
-```txt
-Acta de ingreso
-        ↓
-Aumenta existencias
-
-Acta de entrega-recepción
-        ↓
-Descuenta existencias
-
-Existencias
-        ↓
-Consulta el stock actual
-
-Movimientos
-        ↓
-Muestra el historial de entradas y salidas
-```
-
-El ajuste manual de stock fue retirado del frontend y bloqueado en el backend por seguridad.  
-Las existencias solo deben cambiar mediante procesos documentados.
-
----
-
-## Módulos principales
-
-### Vista pública
-
-Ruta inicial del sistema. Presenta información general antes del inicio de sesión.
-
-```txt
-/
-```
-
-### Inicio de sesión
-
-Permite acceder al sistema con credenciales válidas.
-
-```txt
-/login
-```
-
-### Dashboard
-
-Muestra un resumen general del sistema, incluyendo alertas y datos relevantes del inventario.
-
-```txt
-/dashboard
-```
-
-### Actas de ingreso
-
-Permite registrar ingresos de materiales al inventario.
-
-```txt
-/actas/ingreso
-```
-
-### Actas de entrega-recepción
-
-Permite registrar salidas o entregas de materiales, descontando existencias.
-
-```txt
-/actas/entrega
-```
-
-### Existencias
-
-Lista los materiales existentes y su cantidad actual.
-
-```txt
-/inventario/existencias
-```
-
-### Movimientos de inventario
-
-Muestra el historial de movimientos generados por ingresos y entregas.
-
-```txt
-/inventario/movimientos
-```
-
-### Catálogos
-
-Agrupa la administración de datos base del sistema.
-
-```txt
-/catalogos/materiales
-/catalogos/categorias
-/catalogos/unidades-medida
-/catalogos/instituciones
-/catalogos/autoridades-distritales
-/catalogos/procesos-adquisicion
-```
-
-### Usuarios
-
-Permite administrar usuarios del sistema.
-
-```txt
-/usuarios
-```
-
----
-
-## Roles del sistema
-
-El frontend controla la visualización de opciones según el rol del usuario.
-
-| Rol | Descripción |
+| Recurso | URL |
 |---|---|
-| `administrador` | Acceso completo a módulos administrativos, catálogos, usuarios, actas, existencias y movimientos. |
-| `asistente_actas` | Acceso operativo para gestión de actas y consulta de inventario. |
-| `consulta` | Acceso de solo lectura a información permitida. |
+| Repositorio frontend | https://github.com/he-code/siare-frontend |
+| Repositorio backend | https://github.com/he-code/siare-backend |
+| API desplegada | https://siare-backend-production.up.railway.app |
+| Documentación API | https://siare-backend-production.up.railway.app/docs |
+| Frontend desplegado | https://siare-frontend.vercel.app/ |
 
-> La seguridad real se valida en el backend. El frontend solo mejora la experiencia visual y evita mostrar opciones no disponibles para cada rol.
+> El backend debe incluir `https://siare-frontend.vercel.app` en `CORS_ORIGINS` para permitir el consumo desde producción.
 
----
+## Descripción
 
-## Tecnologías utilizadas
+SIARE organiza el flujo de inventario con documentos formales. Las existencias no se modifican manualmente: aumentan al emitir actas de ingreso y disminuyen al emitir actas de entrega-recepción. Esto conserva trazabilidad, reduce errores operativos y mantiene un historial consultable de entradas y salidas.
 
-- Vue 3.
-- TypeScript.
-- Vite.
-- Vue Router.
-- Pinia.
-- Axios.
-- Vitest.
-- Lucide Vue.
-- CSS personalizado.
+El frontend permite:
 
----
+- Consultar dashboard, existencias, alertas de bajo stock y movimientos.
+- Registrar, revisar, emitir y anular actas de ingreso.
+- Registrar, revisar, emitir y anular actas de entrega-recepción.
+- Administrar catálogos institucionales.
+- Gestionar usuarios y mostrar opciones según rol.
+- Mantener sesión con access token y refresh cookie `HttpOnly`.
+
+## Estado del despliegue
+
+La aplicación está lista para ejecutarse en un hosting estático como Vercel, Netlify o Railway Static. La API productiva está desplegada en Railway:
+
+```env
+VITE_API_URL=https://siare-backend-production.up.railway.app/api/v1
+```
+
+Si el backend recibe la URL sin `/api/v1`, las rutas del frontend fallarán porque los clientes HTTP usan rutas relativas como `/auth/login`, `/inventario/resumen` y `/actas-ingreso`.
+
+## Tecnologías
+
+- Vue 3
+- TypeScript
+- Vite
+- Vue Router
+- Pinia
+- Axios
+- Vitest
+- Lucide Vue
+- CSS personalizado
 
 ## Requisitos
 
-Antes de ejecutar el proyecto, asegúrate de tener instalado:
+- Node.js 20 o superior
+- npm
+- Backend SIARE disponible localmente o desplegado
 
-- Node.js 20 o superior.
-- npm.
-- Backend de SIARE en ejecución.
-
----
-
-## Instalación
-
-Clonar el repositorio:
+## Inicio rápido
 
 ```bash
 git clone https://github.com/he-code/siare-frontend.git
-```
-
-Entrar al proyecto:
-
-```bash
 cd siare-frontend
-```
-
-Instalar dependencias:
-
-```bash
 npm install
+cp .env.example .env
+npm run dev
 ```
 
----
-
-## Configuración de variables de entorno
-
-Crear un archivo `.env` en la raíz del proyecto.
-
-Ejemplo:
+Para desarrollo local, usar:
 
 ```env
 VITE_API_URL=http://localhost:3000/api/v1
 ```
 
-Para producción, esta variable debe apuntar al backend desplegado:
+Para conectar con la API desplegada, usar:
 
 ```env
-VITE_API_URL=https://tu-backend.onrender.com/api/v1
+VITE_API_URL=https://siare-backend-production.up.railway.app/api/v1
 ```
 
----
-
-## Ejecución en desarrollo
-
-```bash
-npm run dev
-```
-
-El frontend se ejecutará normalmente en:
+El servidor de desarrollo queda normalmente en:
 
 ```txt
 http://localhost:5173
 ```
 
----
+## Scripts
 
-## Scripts disponibles
+| Comando | Descripción |
+|---|---|
+| `npm run dev` | Levanta Vite en modo desarrollo |
+| `npm run typecheck` | Valida TypeScript y componentes Vue |
+| `npm run test` | Ejecuta pruebas con Vitest |
+| `npm run build` | Valida tipos y genera `dist/` |
+| `npm run preview` | Sirve el build localmente |
 
-### Iniciar entorno de desarrollo
-
-```bash
-npm run dev
-```
-
-### Validar TypeScript
-
-```bash
-npm run typecheck
-```
-
-### Ejecutar pruebas
-
-```bash
-npm run test
-```
-
-### Compilar para producción
-
-```bash
-npm run build
-```
-
-### Vista previa del build
-
-```bash
-npm run preview
-```
-
----
-
-## Validación recomendada antes de subir cambios
-
-Antes de hacer commit o desplegar, ejecutar:
+Antes de publicar cambios:
 
 ```bash
 npm run typecheck
@@ -293,51 +103,60 @@ npm run test
 npm run build
 ```
 
----
-
-## Estructura general del proyecto
+## Flujo de inventario
 
 ```txt
-src/
-├── auth/                 # Manejo de sesión y autenticación
-├── components/           # Componentes reutilizables y layout principal
-├── features/             # Vistas principales por módulo
-│   ├── acts/             # Actas de ingreso y entrega
-│   ├── catalogs/         # Catálogos administrativos
-│   ├── dashboard/        # Dashboard principal
-│   ├── inventory/        # Existencias y movimientos
-│   └── users/            # Gestión de usuarios
-├── http/                 # Cliente HTTP
-├── permissions/          # Capacidades visuales por rol
-├── routes/               # Rutas de la aplicación
-├── stores/               # Estados globales
-├── utils/                # Funciones auxiliares
-└── views/                # Vistas generales
+Acta de ingreso emitida
+  -> aumenta existencias
+
+Acta de entrega-recepción emitida
+  -> descuenta existencias
+
+Existencias
+  -> muestra stock actual
+
+Movimientos
+  -> conserva historial de entradas y salidas
 ```
 
----
+El ajuste manual de stock fue retirado del frontend y bloqueado en el backend por seguridad.
 
-## Seguridad del flujo de inventario
+## Módulos principales
 
-El sistema evita el ajuste manual directo del stock.
+| Módulo | Ruta |
+|---|---|
+| Vista pública | `/` |
+| Inicio de sesión | `/login` |
+| Dashboard | `/dashboard` |
+| Actas de ingreso | `/actas/ingreso` |
+| Actas de entrega-recepción | `/actas/entrega` |
+| Existencias | `/inventario/existencias` |
+| Movimientos | `/inventario/movimientos` |
+| Materiales | `/catalogos/materiales` |
+| Categorías | `/catalogos/categorias` |
+| Unidades de medida | `/catalogos/unidades-medida` |
+| Instituciones | `/catalogos/instituciones` |
+| Autoridades distritales | `/catalogos/autoridades-distritales` |
+| Procesos de adquisición | `/catalogos/procesos-adquisicion` |
+| Usuarios | `/usuarios` |
 
-Las existencias se modifican únicamente mediante:
+## Roles
 
-- Actas de ingreso.
-- Actas de entrega-recepción.
+| Rol | Acceso |
+|---|---|
+| `administrador` | Gestión completa de usuarios, catálogos, actas, existencias y movimientos |
+| `asistente_actas` | Operación de actas y consulta de inventario |
+| `consulta` | Lectura de información permitida |
 
-Esto ayuda a mantener trazabilidad, control documental y mayor seguridad en el manejo del inventario.
+La seguridad real se valida en el backend. El frontend solo ajusta navegación y acciones visibles para mejorar la experiencia.
 
----
+## Integración con la API
 
-## Integración con backend
-
-Este frontend consume una API REST del backend SIARE.
-
-Endpoints principales utilizados:
+El cliente HTTP está en `src/api/http.ts` y usa `VITE_API_URL` como `baseURL`. Endpoints principales consumidos:
 
 ```txt
 POST /auth/login
+POST /auth/refresh
 GET  /auth/me
 POST /auth/logout
 
@@ -346,6 +165,8 @@ GET  /inventario/existencias
 GET  /inventario/alertas-bajo-stock
 GET  /inventario/movimientos
 
+GET  /actas-ingreso
+GET  /actas-entrega
 GET  /materiales
 GET  /categorias
 GET  /unidades-medida
@@ -355,76 +176,36 @@ GET  /procesos-adquisicion
 GET  /users
 ```
 
----
-
-## Despliegue sugerido
-
-Para un portafolio gratuito se recomienda:
+## Estructura
 
 ```txt
-Frontend: Netlify o Vercel
-Backend: Render
-Base de datos: Neon PostgreSQL
+src/
+|-- api/                  # Cliente HTTP y manejo de errores
+|-- auth/                 # Sesión y autenticación
+|-- components/           # Componentes reutilizables y layout
+|-- features/             # Vistas principales por módulo
+|   |-- acts/             # Actas de ingreso y entrega
+|   |-- catalogs/         # Catálogos administrativos
+|   |-- dashboard/        # Dashboard principal
+|   |-- inventory/        # Existencias y movimientos
+|   |-- profile/          # Perfil de usuario
+|   `-- users/            # Gestión de usuarios
+|-- permissions/          # Capacidades visuales por rol
+|-- routes/               # Rutas de la aplicación
+|-- stores/               # Estado global
+|-- types/                # Contratos TypeScript
+`-- views/                # Vistas generales
 ```
 
-Flujo sugerido:
+## Despliegue
 
-```txt
-Usuario
-  ↓
-Frontend en Netlify/Vercel
-  ↓
-Backend en Render
-  ↓
-Base de datos PostgreSQL en Neon
-```
-
----
-
-## Configuración para producción
-
-En producción, configurar la variable:
-
-```env
-VITE_API_URL=https://tu-backend.onrender.com/api/v1
-```
-
-Luego generar el build:
-
-```bash
-npm run build
-```
-
-El resultado se generará en:
-
-```txt
-dist/
-```
-
----
-
-## Estado del proyecto
-
-Proyecto preparado para portafolio, con:
-
-- Interfaz responsive.
-- Flujo de inventario basado en actas.
-- Consulta de existencias.
-- Alertas de bajo stock.
-- Gestión de catálogos.
-- Gestión de usuarios.
-- Validación de sesión.
-- Pruebas básicas.
-- Build de producción funcional.
-
----
+1. Crear el proyecto en el proveedor de hosting.
+2. Configurar `VITE_API_URL` con la URL productiva de la API y el prefijo `/api/v1`.
+3. Usar `npm install` como comando de instalación.
+4. Usar `npm run build` como comando de build.
+5. Publicar la carpeta `dist/`.
+6. Agregar la URL pública del frontend a `CORS_ORIGINS` en el backend.
 
 ## Autor
 
 Desarrollado por **he-code** como proyecto de portafolio.
-
-Repositorio:
-
-```txt
-https://github.com/he-code/siare-frontend
-```
