@@ -264,11 +264,3 @@ Backend desplegado en **Railway**.
 -   Nuevos módulos administrativos.
 
 ------------------------------------------------------------------------
-
-# 👨‍💻 Autor
-
-**Cherno Alpha**
-
-Ingeniero en Sistemas · Full Stack Developer Junior
-
--   GitHub: https://github.com/he-code
