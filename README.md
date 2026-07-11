@@ -1,211 +1,274 @@
 # SIARE Frontend
 
-Frontend web de **SIARE**, un sistema para gestionar inventario institucional mediante actas de ingreso, actas de entrega-recepción, catálogos administrativos, usuarios, existencias y movimientos.
+Aplicación web desarrollada con **Vue 3** y **TypeScript** para la
+gestión institucional de inventario mediante actas administrativas.
 
-Este repositorio contiene la aplicación Vue que consume la API de [siare-backend](https://github.com/he-code/siare-backend). El proyecto ya está preparado para despliegue y para conectar con el backend publicado en Railway.
+SIARE (Sistema Institucional de Administración de Recursos Educativos)
+permite controlar el ingreso, entrega y seguimiento de materiales,
+administrando el inventario mediante procesos documentados y manteniendo
+trazabilidad completa de cada movimiento.
 
-## Enlaces
+La aplicación consume la API REST de **SIARE Backend** y ofrece una
+experiencia moderna, segura y responsive para los diferentes perfiles de
+usuario.
 
-| Recurso | URL |
-|---|---|
-| Repositorio frontend | https://github.com/he-code/siare-frontend |
-| Repositorio backend | https://github.com/he-code/siare-backend |
-| API desplegada | https://siare-backend-production.up.railway.app |
-| Documentación API | https://siare-backend-production.up.railway.app/docs |
-| Frontend desplegado | https://siare-frontend.vercel.app/ |
+------------------------------------------------------------------------
 
-> El backend debe incluir `https://siare-frontend.vercel.app` en `CORS_ORIGINS` para permitir el consumo desde producción.
+# 🚀 Demo
 
-## Descripción
+  ------------------------------------------------------------------------------------------
+  Recurso                             URL
+  ----------------------------------- ------------------------------------------------------
+  Aplicación                          https://siare-frontend.vercel.app/
 
-SIARE organiza el flujo de inventario con documentos formales. Las existencias no se modifican manualmente: aumentan al emitir actas de ingreso y disminuyen al emitir actas de entrega-recepción. Esto conserva trazabilidad, reduce errores operativos y mantiene un historial consultable de entradas y salidas.
+  API                                 https://siare-backend-production.up.railway.app
 
-El frontend permite:
+  Documentación API                   https://siare-backend-production.up.railway.app/docs
 
-- Consultar dashboard, existencias, alertas de bajo stock y movimientos.
-- Registrar, revisar, emitir y anular actas de ingreso.
-- Registrar, revisar, emitir y anular actas de entrega-recepción.
-- Administrar catálogos institucionales.
-- Gestionar usuarios y mostrar opciones según rol.
-- Mantener sesión con access token y refresh cookie `HttpOnly`.
+  Repositorio Frontend                https://github.com/he-code/siare-frontend
 
-## Estado del despliegue
+  Repositorio Backend                 https://github.com/he-code/siare-backend
+  ------------------------------------------------------------------------------------------
 
-La aplicación está lista para ejecutarse en un hosting estático como Vercel, Netlify o Railway Static. La API productiva está desplegada en Railway:
+------------------------------------------------------------------------
 
-```env
-VITE_API_URL=https://siare-backend-production.up.railway.app/api/v1
+# 🔑 Acceso de demostración
+
+  Usuario               Contraseña
+  --------------------- ----------------
+  `admin@example.com`   `password1234`
+
+> Estas credenciales están destinadas exclusivamente para la
+> demostración del sistema.
+
+------------------------------------------------------------------------
+
+# 🎯 Objetivo del proyecto
+
+Este proyecto fue desarrollado para digitalizar los procesos
+administrativos relacionados con el control de inventario institucional,
+reemplazando registros manuales por una aplicación web moderna basada en
+una arquitectura desacoplada frontend/backend.
+
+El sistema demuestra el desarrollo de aplicaciones empresariales
+utilizando tecnologías modernas, autenticación segura, control de acceso
+por roles e integración con una API REST.
+
+------------------------------------------------------------------------
+
+# ✨ Características
+
+-   Dashboard con indicadores de inventario.
+-   Gestión de actas de ingreso.
+-   Gestión de actas de entrega-recepción.
+-   Consulta de existencias.
+-   Historial de movimientos.
+-   Administración de materiales.
+-   Gestión de instituciones.
+-   Gestión de autoridades distritales.
+-   Gestión de usuarios.
+-   Control de acceso basado en roles.
+-   Integración con API REST.
+-   Persistencia de sesión mediante Access Token y Refresh Token.
+
+------------------------------------------------------------------------
+
+# 🏗 Arquitectura
+
+El frontend está desarrollado como una SPA (Single Page Application)
+independiente que consume la API REST de SIARE Backend.
+
+``` text
+Usuario
+   │
+   ▼
+Vue 3 + TypeScript
+   │
+Axios
+   │
+API REST (Fastify)
+   │
+PostgreSQL
 ```
 
-Si el backend recibe la URL sin `/api/v1`, las rutas del frontend fallarán porque los clientes HTTP usan rutas relativas como `/auth/login`, `/inventario/resumen` y `/actas-ingreso`.
+------------------------------------------------------------------------
 
-## Tecnologías
+# 🛠 Tecnologías utilizadas
 
-- Vue 3
-- TypeScript
-- Vite
-- Vue Router
-- Pinia
-- Axios
-- Vitest
-- Lucide Vue
-- CSS personalizado
+## Frontend
+
+-   Vue 3
+-   TypeScript
+-   Vite
+
+## Estado y navegación
+
+-   Pinia
+-   Vue Router
+
+## Comunicación
+
+-   Axios
+
+## Interfaz
+
+-   Lucide Vue
+-   CSS personalizado
+
+## Calidad
+
+-   Vitest
+
+------------------------------------------------------------------------
+
+# 📦 Instalación
 
 ## Requisitos
 
-- Node.js 20 o superior
-- npm
-- Backend SIARE disponible localmente o desplegado
+-   Node.js 20 o superior
+-   npm
+-   Backend SIARE disponible
 
-## Inicio rápido
-
-```bash
+``` bash
 git clone https://github.com/he-code/siare-frontend.git
 cd siare-frontend
 npm install
 cp .env.example .env
-npm run dev
 ```
 
-Para desarrollo local, usar:
+------------------------------------------------------------------------
 
-```env
+# ⚙️ Configuración
+
+Desarrollo local:
+
+``` env
 VITE_API_URL=http://localhost:3000/api/v1
 ```
 
-Para conectar con la API desplegada, usar:
+Producción:
 
-```env
+``` env
 VITE_API_URL=https://siare-backend-production.up.railway.app/api/v1
 ```
 
-El servidor de desarrollo queda normalmente en:
+> El backend debe incluir `https://siare-frontend.vercel.app` en
+> `CORS_ORIGINS`.
 
-```txt
+------------------------------------------------------------------------
+
+# ▶️ Ejecución
+
+``` bash
+npm run dev
+```
+
+Servidor local:
+
+``` text
 http://localhost:5173
 ```
 
 ## Scripts
 
-| Comando | Descripción |
-|---|---|
-| `npm run dev` | Levanta Vite en modo desarrollo |
-| `npm run typecheck` | Valida TypeScript y componentes Vue |
-| `npm run test` | Ejecuta pruebas con Vitest |
-| `npm run build` | Valida tipos y genera `dist/` |
-| `npm run preview` | Sirve el build localmente |
+  Comando               Descripción
+  --------------------- -----------------------
+  `npm run dev`         Desarrollo
+  `npm run typecheck`   Validación TypeScript
+  `npm run test`        Pruebas
+  `npm run build`       Compilación
+  `npm run preview`     Vista previa
+
+------------------------------------------------------------------------
+
+# 📂 Estructura del proyecto
+
+``` text
+src/
+├── api/
+├── auth/
+├── components/
+├── features/
+│   ├── acts/
+│   ├── catalogs/
+│   ├── dashboard/
+│   ├── inventory/
+│   ├── profile/
+│   └── users/
+├── permissions/
+├── routes/
+├── stores/
+├── types/
+└── views/
+```
+
+------------------------------------------------------------------------
+
+# 🔌 Integración con la API
+
+El cliente HTTP utiliza `VITE_API_URL` como URL base y consume módulos
+como:
+
+-   Autenticación
+-   Dashboard
+-   Inventario
+-   Actas
+-   Materiales
+-   Instituciones
+-   Usuarios
+
+La documentación de la API está disponible en:
+
+https://siare-backend-production.up.railway.app/docs
+
+------------------------------------------------------------------------
+
+# 🔐 Roles
+
+  Rol                 Acceso
+  ------------------- -------------------------
+  `admin`             Administración completa
+  `asistente_actas`   Gestión operativa
+  `consulta`          Solo lectura
+
+> La autorización se valida en el backend. El frontend adapta la
+> interfaz según el rol autenticado.
+
+------------------------------------------------------------------------
+
+# 🧪 Pruebas
 
 Antes de publicar cambios:
 
-```bash
+``` bash
 npm run typecheck
 npm run test
 npm run build
 ```
 
-## Flujo de inventario
+------------------------------------------------------------------------
 
-```txt
-Acta de ingreso emitida
-  -> aumenta existencias
+# 🚀 Despliegue
 
-Acta de entrega-recepción emitida
-  -> descuenta existencias
+Frontend desplegado en **Vercel**.
 
-Existencias
-  -> muestra stock actual
+Backend desplegado en **Railway**.
 
-Movimientos
-  -> conserva historial de entradas y salidas
-```
+------------------------------------------------------------------------
 
-El ajuste manual de stock fue retirado del frontend y bloqueado en el backend por seguridad.
+# 🗺 Hoja de ruta
 
-## Módulos principales
+-   Mayor cobertura de pruebas.
+-   Mejoras de accesibilidad.
+-   Optimización de rendimiento.
+-   Nuevos módulos administrativos.
 
-| Módulo | Ruta |
-|---|---|
-| Vista pública | `/` |
-| Inicio de sesión | `/login` |
-| Dashboard | `/dashboard` |
-| Actas de ingreso | `/actas/ingreso` |
-| Actas de entrega-recepción | `/actas/entrega` |
-| Existencias | `/inventario/existencias` |
-| Movimientos | `/inventario/movimientos` |
-| Materiales | `/catalogos/materiales` |
-| Categorías | `/catalogos/categorias` |
-| Unidades de medida | `/catalogos/unidades-medida` |
-| Instituciones | `/catalogos/instituciones` |
-| Autoridades distritales | `/catalogos/autoridades-distritales` |
-| Procesos de adquisición | `/catalogos/procesos-adquisicion` |
-| Usuarios | `/usuarios` |
+------------------------------------------------------------------------
 
-## Roles
+# 👨‍💻 Autor
 
-| Rol | Acceso |
-|---|---|
-| `administrador` | Gestión completa de usuarios, catálogos, actas, existencias y movimientos |
-| `asistente_actas` | Operación de actas y consulta de inventario |
-| `consulta` | Lectura de información permitida |
+**Cherno Alpha**
 
-La seguridad real se valida en el backend. El frontend solo ajusta navegación y acciones visibles para mejorar la experiencia.
+Ingeniero en Sistemas · Full Stack Developer Junior
 
-## Integración con la API
-
-El cliente HTTP está en `src/api/http.ts` y usa `VITE_API_URL` como `baseURL`. Endpoints principales consumidos:
-
-```txt
-POST /auth/login
-POST /auth/refresh
-GET  /auth/me
-POST /auth/logout
-
-GET  /inventario/resumen
-GET  /inventario/existencias
-GET  /inventario/alertas-bajo-stock
-GET  /inventario/movimientos
-
-GET  /actas-ingreso
-GET  /actas-entrega
-GET  /materiales
-GET  /categorias
-GET  /unidades-medida
-GET  /instituciones
-GET  /autoridades-distritales
-GET  /procesos-adquisicion
-GET  /users
-```
-
-## Estructura
-
-```txt
-src/
-|-- api/                  # Cliente HTTP y manejo de errores
-|-- auth/                 # Sesión y autenticación
-|-- components/           # Componentes reutilizables y layout
-|-- features/             # Vistas principales por módulo
-|   |-- acts/             # Actas de ingreso y entrega
-|   |-- catalogs/         # Catálogos administrativos
-|   |-- dashboard/        # Dashboard principal
-|   |-- inventory/        # Existencias y movimientos
-|   |-- profile/          # Perfil de usuario
-|   `-- users/            # Gestión de usuarios
-|-- permissions/          # Capacidades visuales por rol
-|-- routes/               # Rutas de la aplicación
-|-- stores/               # Estado global
-|-- types/                # Contratos TypeScript
-`-- views/                # Vistas generales
-```
-
-## Despliegue
-
-1. Crear el proyecto en el proveedor de hosting.
-2. Configurar `VITE_API_URL` con la URL productiva de la API y el prefijo `/api/v1`.
-3. Usar `npm install` como comando de instalación.
-4. Usar `npm run build` como comando de build.
-5. Publicar la carpeta `dist/`.
-6. Agregar la URL pública del frontend a `CORS_ORIGINS` en el backend.
-
-## Autor
-
-Desarrollado por **he-code** como proyecto de portafolio.
+-   GitHub: https://github.com/he-code
