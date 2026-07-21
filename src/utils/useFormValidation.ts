@@ -1,42 +1,28 @@
 import { reactive } from 'vue';
 
-type ValidationRules<T> = {
-  [K in keyof T]?: Array<(value: T[K], values: T) => string | undefined>;
-};
-
-export function useFormValidation<T extends Record<string, unknown>>(rules: ValidationRules<T>) {
-  const fieldErrors = reactive<Record<string, string | undefined>>({});
+export function useFormValidation<T extends Record<string, unknown>>() {
+  const fieldErrors = reactive<Record<string, string>>({});
   let formError = '';
 
-  function validateField<K extends keyof T>(field: K, values: T) {
-    const fieldRules = rules[field];
-    if (!fieldRules) return;
-    for (const rule of fieldRules) {
-      const error = rule(values[field], values);
-      if (error) {
-        fieldErrors[field as string] = error;
-        return;
-      }
-    }
-    delete fieldErrors[field as string];
+  function setFieldError(field: string, error: string) {
+    fieldErrors[field] = error;
   }
 
-  function validateAll(values: T): boolean {
+  function clearFieldError(field: string) {
+    delete fieldErrors[field];
+  }
+
+  function validateAll(rules: Array<{ field: string; validate: (values: T) => string | undefined }>, values: T): boolean {
     formError = '';
     let valid = true;
-    for (const field of Object.keys(rules) as Array<keyof T>) {
-      const fieldRules = rules[field];
-      if (!fieldRules) continue;
-      for (const rule of fieldRules) {
-        const error = rule(values[field], values);
-        if (error) {
-          fieldErrors[field as string] = error;
-          valid = false;
-          break;
-        }
-      }
-      if (!fieldErrors[field as string]) {
-        delete fieldErrors[field as string];
+    for (const key of Object.keys(fieldErrors)) {
+      delete fieldErrors[key];
+    }
+    for (const { field, validate } of rules) {
+      const error = validate(values);
+      if (error) {
+        fieldErrors[field] = error;
+        valid = false;
       }
     }
     return valid;
@@ -49,11 +35,5 @@ export function useFormValidation<T extends Record<string, unknown>>(rules: Vali
     }
   }
 
-  return { fieldErrors, formError, validateField, validateAll, resetErrors } as {
-    fieldErrors: Partial<Record<keyof T, string>>;
-    formError: string;
-    validateField: <K extends keyof T>(field: K, values: T) => void;
-    validateAll: (values: T) => boolean;
-    resetErrors: () => void;
-  };
+  return { fieldErrors, formError, setFieldError, clearFieldError, validateAll, resetErrors };
 }
