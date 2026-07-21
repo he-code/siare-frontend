@@ -15,12 +15,6 @@
           </RouterLink>
         </div>
 
-        <div class="main-nav__group">
-          <button class="sidebar-theme-toggle" @click="theme.toggle">
-            <component :is="theme.isDark ? Sun : Moon" aria-hidden="true" />
-            <span>{{ theme.isDark ? 'Modo claro' : 'Modo oscuro' }}</span>
-          </button>
-        </div>
       </nav>
     </aside>
 
@@ -39,6 +33,9 @@
         </div>
 
         <div class="topbar__actions">
+          <button class="topbar-theme-toggle" @click="theme.toggle" :aria-label="theme.isDark ? 'Modo claro' : 'Modo oscuro'">
+            <component :is="theme.isDark ? Sun : Moon" aria-hidden="true" />
+          </button>
           <RouterLink to="/perfil" class="session-pill">
             <UserRound aria-hidden="true" />
             <span>{{ auth.user?.name }}</span>
