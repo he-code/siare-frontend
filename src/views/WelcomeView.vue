@@ -18,9 +18,9 @@
     <section class="welcome-hero">
       <div class="welcome-hero__content">
         <span class="welcome-kicker">Sistema Integral de Administración de Recursos y Existencias</span>
-        <h1>Inventario, actas y trazabilidad en un solo lugar.</h1>
+        <h1>Control de inventario institucional con trazabilidad documentada.</h1>
         <p class="welcome-hero__lead">
-          SIARE organiza el ingreso, entrega y control de materiales institucionales con documentos formales que garantizan trazabilidad. Todo el flujo está pensado para el trabajo real, no como una plantilla genérica.
+          SIARE gestiona el ingreso, entrega y control de materiales mediante actas administrativas que garantizan trazabilidad completa. Diseñado para instituciones que necesitan orden, control y transparencia en la administración de sus recursos.
         </p>
 
         <div class="welcome-hero__stats">
@@ -36,12 +36,16 @@
             <strong>2</strong>
             <span>Tipos de actas</span>
           </div>
+          <div class="welcome-hero__stat">
+            <strong>1</strong>
+            <span>Regla: sin ajustes manuales</span>
+          </div>
         </div>
 
         <div class="welcome-actions">
           <RouterLink v-if="auth.user" class="button button--primary" to="/dashboard">
             <LayoutDashboard aria-hidden="true" />
-            Entrar al dashboard
+            Ir al dashboard
           </RouterLink>
           <RouterLink v-else class="button button--primary" to="/login">
             <LogIn aria-hidden="true" />
@@ -73,6 +77,7 @@
           <span class="welcome-summary__tag">Seguridad</span>
           <span class="welcome-summary__tag">Trazabilidad</span>
           <span class="welcome-summary__tag">Sin ajustes manuales</span>
+          <span class="welcome-summary__tag">Multi-institucional</span>
         </div>
       </aside>
     </section>
@@ -146,6 +151,15 @@
         </div>
         <div class="welcome-feature-alt">
           <div class="welcome-feature-alt__icon">
+            <Building2 aria-hidden="true" />
+          </div>
+          <div>
+            <h3>Multi-institucional</h3>
+            <p>Administra múltiples instituciones, autoridades distritales y procesos de adquisición desde un mismo sistema.</p>
+          </div>
+        </div>
+        <div class="welcome-feature-alt">
+          <div class="welcome-feature-alt__icon">
             <KeyRound aria-hidden="true" />
           </div>
           <div>
@@ -168,8 +182,8 @@
     <section id="proceso" class="welcome-process">
       <div>
         <span>Proceso recomendado</span>
-        <h2>Primero configura el contexto, luego opera el inventario.</h2>
-        <p>Sigue este flujo para mantener la integridad de tus datos desde el primer día.</p>
+        <h2>Configura el contexto, luego opera el inventario.</h2>
+        <p>Seis pasos para mantener la integridad de tus datos desde el primer día.</p>
       </div>
       <ol>
         <li><strong>Registra autoridades</strong> — Crea autoridades distritales y procesos de adquisición.</li>
@@ -188,7 +202,9 @@
           <span>SIARE</span>
         </div>
         <p>Sistema Integral de Administración de Recursos y Existencias — Proyecto de portafolio.</p>
-        <p class="welcome-footer__copy">Desarrollado por <a href="https://github.com/he-code" target="_blank" rel="noopener noreferrer">he-code</a></p>
+        <p class="welcome-footer__copy">
+          Desarrollado por <a href="https://github.com/he-code" target="_blank" rel="noopener noreferrer">he-code</a>
+        </p>
       </div>
     </footer>
   </main>
