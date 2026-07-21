@@ -41,7 +41,7 @@
         </article>
       </div>
 
-      <section class="table-wrap">
+      <section v-scroll-shadow class="table-wrap">
         <header class="section-title-row">
           <h2>Alertas de stock</h2>
         </header>
@@ -66,7 +66,7 @@
         <EmptyState v-else title="No hay materiales con bajo stock" />
       </section>
 
-      <section class="table-wrap">
+      <section v-scroll-shadow class="table-wrap">
         <header class="section-title-row">
           <h2>Movimientos recientes</h2>
         </header>

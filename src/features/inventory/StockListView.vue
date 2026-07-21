@@ -34,7 +34,7 @@
       </div>
     </form>
 
-    <div class="table-wrap">
+    <div v-scroll-shadow class="table-wrap">
       <LoadingBlock v-if="loading" />
       <EmptyState v-else-if="error" title="No se pudo cargar existencias" :message="error" :icon="CircleAlert" />
       <EmptyState v-else-if="rows.length === 0" title="No hay materiales para mostrar" />

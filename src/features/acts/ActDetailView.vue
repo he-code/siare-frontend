@@ -89,7 +89,7 @@
         </div>
       </section>
 
-      <section class="table-wrap">
+      <section v-scroll-shadow class="table-wrap">
         <table class="data-table">
           <thead>
             <tr>

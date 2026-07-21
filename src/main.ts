@@ -10,6 +10,16 @@ import '@/styles.css';
 const app = createApp(App);
 const pinia = createPinia();
 
+app.directive('scroll-shadow', {
+  mounted(el: HTMLElement) {
+    function update() {
+      el.classList.toggle('table-wrap--scrolled', el.scrollLeft > 4);
+    }
+    el.addEventListener('scroll', update, { passive: true });
+    update();
+  },
+});
+
 app.use(pinia);
 app.use(router);
 
