@@ -178,4 +178,4 @@ src/
 
 ## Licencia
 
-MIT. Proyecto de portafolio por [he-code](https://github.com/he-code).
+MIT.
