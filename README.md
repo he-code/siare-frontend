@@ -15,111 +15,97 @@
   Aplicación web empresarial para gestión de inventario y actas administrativas.
 </p>
 
-<p align="center">
-  <a href="https://siare-frontend.vercel.app/" target="_blank">🌐 Demo en vivo</a>
-  ·
-  <a href="https://github.com/he-code/siare-backend" target="_blank">📦 Backend (Fastify)</a>
-  ·
-  <a href="https://siare-backend-production.up.railway.app/docs" target="_blank">📖 Documentación API</a>
-</p>
+---
+
+## Sobre el proyecto
+
+SIARE es una SPA construida con **Vue 3 + TypeScript** que resuelve un problema real de gestión institucional: trazabilidad completa de inventario mediante actas documentadas (ingreso y entrega-recepción), catálogos configurables, control de acceso por roles y dashboard de métricas.
+
+El frontend se conecta a un [backend Fastify/Laravel](https://github.com/he-code/siare-backend) y está desplegado en Vercel.
 
 ---
 
-## 📋 Tabla de contenidos
+## Lo que demuestra este proyecto
 
-- [Demo](#demo)
-- [Technical Highlights](#technical-highlights)
-- [Características](#características)
-- [Arquitectura](#arquitectura)
-- [Stack tecnológico](#stack-tecnológico)
-- [Instalación](#instalación)
-- [Scripts](#scripts)
-- [Estructura del proyecto](#estructura-del-proyecto)
-- [Roles](#roles)
-- [Despliegue](#despliegue)
-- [Licencia](#licencia)
+### Arquitectura y patrones
+
+| Decisión técnica | Implementación |
+|---|---|
+| **Refresh token con coalescencia** | Interceptor de Axios que ante un 401 renueva el token. Si múltiples peticiones fallan simultáneamente, solo una llama al refresh; las demás esperan la misma promesa. |
+| **RBAC en dos capas** | Route guard global verifica capabilities antes de renderizar; los menús se filtran por rol. 3 roles, 12 capabilities declarativas. |
+| **CRUD config-driven** | Un solo `ResourceListView.vue` renderiza 8 catálogos distintos basado en configuraciones declarativas (`resourceConfigs.ts`): columnas, tipos de campo, validaciones, filtros y permisos. |
+| **Query-synced filters** | Filtros y paginación sincronizados con query params de la URL. Búsqueda con debounce de 350ms. |
+| **Request deduplication** | `AbortController` + contador `requestId` para cancelar peticiones obsoletas al cambiar filtros. |
+| **Feature-based structure** | Organización por dominio (`features/acts/`, `features/inventory/`) en lugar de por tipo técnico. |
+| **Snapshots en actas** | Los datos de autoridades, instituciones y líderes se capturan al crear el acta, garantizando integridad histórica aunque esos registros cambien después. |
+
+### Componentes y UX
+
+- **Sin librería UI externa** — Todos los componentes (modal, paginación, skeleton loader, toast, badges, botones) están construidos a mano con CSS custom properties y más de 40 variables de tema.
+- **Modo oscuro** — Toggle persistido en `localStorage`, implementado con atributo `data-theme` en `<html>` y variables CSS.
+- **Focus trap** — El modal `ModalSheet.vue` atrapa el foco y cierra con Escape, implementado manualmente.
+- **Page transitions** — Transiciones `out-in` entre rutas con `<Transition>` de Vue.
+- **v-scroll-shadow** — Directiva personalizada que añade sombra al hacer scroll horizontal en tablas.
+- **Skeleton loaders** — Tres variantes (table, card, metric) para estados de carga.
+- **Confirmación en acciones destructivas** — Diálogo de confirmación con campo de motivo obligatorio para acciones como cancelar actas.
+
+### Estado y datos
+
+- **Pinia** — 3 stores modulares (auth, theme, toast) con APIs options y composition según el caso.
+- **Token en memoria + localStorage** — Access token en variable JS (seguro contra XSS) con respaldo en `localStorage` para restaurar sesión al recargar.
+- **HTTP layer tipado** — Generic helpers `listResource<T>()`, `getResource<T>()`, `createResource<T>()`, `updateResource<T>()` con tipos genéricos `PaginatedResponse<T>` y `DataResponse<T>`.
+- **Manejo de errores** — `extractErrorMessage()` parsea errores de Axios en mensajes amigables en español, incluyendo requestId para depuración.
+
+### Tipado
+
+- `strict: true` en tsconfig
+- Interfaces explícitas para cada respuesta API, metadatos de ruta y modelos de dominio (~30 tipos)
+- RouteMeta extendido con `title`, `public`, `capability`, `resourceKey`, `actKind`
+- Enums como union types (`Role`, `ActStatus`, `MovementType`, `LeaderPosition`)
+
+### Testing
+
+- Vitest + Vue Test Utils + jsdom
+- Pruebas de la función `can()` del RBAC para los 3 roles
+- Pruebas de formato (fechas, decimales, etiquetas de estado)
 
 ---
 
-## 🚀 Demo
+## Stack
 
-| Recurso               | URL                                                    |
-| --------------------- | ------------------------------------------------------ |
-| Aplicación            | https://siare-frontend.vercel.app/                     |
-| API                   | https://siare-backend-production.up.railway.app        |
-| Documentación API     | https://siare-backend-production.up.railway.app/docs   |
-| Repositorio Frontend  | https://github.com/he-code/siare-frontend              |
-| Repositorio Backend   | https://github.com/he-code/siare-backend               |
+| Capa | Tecnología |
+|---|---|
+| Framework | Vue 3 (Composition API, `<script setup>`) |
+| Lenguaje | TypeScript (strict mode) |
+| Build | Vite |
+| Router | Vue Router 4 (lazy loading, guards, route meta) |
+| Estado | Pinia |
+| HTTP | Axios (interceptors, refresh token, retry) |
+| Iconos | Lucide Vue (tree-shaking) |
+| Estilos | CSS personalizado con variables + modo oscuro |
+| Pruebas | Vitest + Vue Test Utils + jsdom |
+| Validación | vue-tsc |
 
-**Acceso de demostración:**
+---
 
-| Usuario             | Contraseña    | Rol           |
-| ------------------- | ------------- | ------------- |
+## Demo
+
+| Recurso | URL |
+|---|---|
+| Aplicación | https://siare-frontend.vercel.app/ |
+| API | https://siare-backend-production.up.railway.app |
+| Documentación API | https://siare-backend-production.up.railway.app/docs |
+| Backend | https://github.com/he-code/siare-backend |
+
+**Acceso demo:**
+
+| Usuario | Contraseña | Rol |
+|---|---|---|
 | `admin@example.com` | `password1234` | Administrador |
 
 ---
 
-## 💡 Technical Highlights
-
-| Patrón / Decisión                                          | Implementación                                                                 |
-| ---------------------------------------------------------- | ------------------------------------------------------------------------------ |
-| **Refresh token automático**                               | Axios interceptor que renueva el token en 401s con coalescencia de llamadas concurrentes para evitar múltiples refreshes |
-| **RBAC en dos capas**                                      | Route guard global + guards en componentes. Mapeo declarativo `role → capabilities` con 3 roles y ~16 permisos |
-| **Config-driven CRUD**                                     | Vistas de catálogos genéricas impulsadas por `resourceConfigs.ts`: columnas, filtros, formularios y permisos en un solo archivo |
-| **Query-synced filters**                                   | Filtros y paginación sincronizados con query params. Búsqueda con debounce de 350ms |
-| **Request deduplication**                                  | AbortController + contador `requestId` para cancelar peticiones obsoletas al filtrar o navegar |
-| **Feature-based structure**                                | Organización por dominio (`features/acts/`, `features/inventory/`) en lugar de por tipo técnico |
-| **Composition API (`<script setup>`)**                     | Todos los componentes usan la API de composición de Vue 3 con tipado estricto |
-| **Session persistence**                                    | Token en memoria (variable JS) + respaldo en `localStorage`. Restauración automática al recargar |
-| **Lazy loading**                                           | Todas las rutas usan importaciones dinámicas |
-| **Tipado fuerte**                                          | Interfaces explícitas para respuestas API (`PaginatedResponse<T>`, `DataResponse<T>`), metadatos de ruta y modelos de dominio |
-
----
-
-## ✨ Características
-
-- Autenticación con Access Token + Refresh Token y renovación automática
-- Dashboard con métricas clave, alertas de bajo stock y movimientos recientes
-- Actas de ingreso con creación de materiales en línea
-- Actas de entrega-recepción con descuento automático de existencias
-- Consulta de existencias e historial de movimientos
-- Catálogos: materiales, categorías, unidades, instituciones, autoridades, procesos
-- Gestión de usuarios con 3 roles y permisos granulares
-- Sin ajustes manuales de stock — todo se modifica mediante actas documentadas
-- Modo oscuro
-- Diseño responsive
-
----
-
-## 🏗️ Arquitectura
-
-```
-Browser ──▶ Vue 3 SPA ──▶ Axios (interceptors + refresh token) ──▶ API REST ──▶ PostgreSQL
-                                  │
-                                  ├─ Request: attach Bearer token
-                                  └─ Response 401: auto-refresh + retry
-```
-
----
-
-## 🛠️ Stack tecnológico
-
-| Capa         | Tecnología                                          |
-| ------------ | --------------------------------------------------- |
-| Framework    | Vue 3 (Composition API, `<script setup>`)           |
-| Lenguaje     | TypeScript (strict mode)                            |
-| Build tool   | Vite 8                                              |
-| Router       | Vue Router 4 (lazy loading, guards, route meta)     |
-| Estado       | Pinia (stores modulares)                            |
-| HTTP         | Axios (interceptors, refresh token, retry)          |
-| Iconos       | Lucide Vue (tree-shaking)                           |
-| Estilos      | CSS personalizado con variables + modo oscuro       |
-| Pruebas      | Vitest + Vue Test Utils + jsdom                     |
-| Validación   | vue-tsc                                             |
-
----
-
-## 📦 Instalación
+## Instalación
 
 ```bash
 git clone https://github.com/he-code/siare-frontend.git
@@ -136,63 +122,60 @@ VITE_API_URL=http://localhost:3000/api/v1
 
 ---
 
-## 🔧 Scripts
+## Scripts
 
-| Comando             | Descripción                     |
-| ------------------- | ------------------------------- |
-| `npm run dev`       | Servidor de desarrollo          |
-| `npm run build`     | Compilar para producción        |
-| `npm run preview`   | Vista previa del build          |
-| `npm run typecheck` | Validación de tipos TypeScript  |
-| `npm run test`      | Pruebas unitarias               |
+| Comando | Descripción |
+|---|---|
+| `npm run dev` | Servidor de desarrollo |
+| `npm run build` | Compilar para producción |
+| `npm run preview` | Vista previa del build |
+| `npm run typecheck` | Validación de tipos TypeScript |
+| `npm run test` | Pruebas unitarias |
 
 ---
 
-## 📁 Estructura del proyecto
+## Estructura
 
 ```
 src/
-├── api/            # Cliente HTTP e interceptores
-├── auth/           # Sesión y autenticación
-├── components/     # Componentes reutilizables
+├── api/            # Cliente HTTP, interceptores, CRUD genérico
+├── auth/           # Sesión y autenticación (Pinia store)
+├── components/     # Componentes reutilizables (sin librería externa)
 ├── features/       # Módulos funcionales por dominio
-│   ├── acts/       # Actas de ingreso y entrega
-│   ├── catalogs/   # Catálogos (config-driven CRUD)
-│   ├── dashboard/  # Dashboard principal
-│   ├── inventory/  # Existencias y movimientos
-│   ├── profile/    # Perfil de usuario
-│   └── users/      # Gestión de usuarios
-├── permissions/    # Matriz de capacidades por rol
+│   ├── acts/       # Actas de ingreso y entrega-recepción
+│   ├── catalogs/   # Catálogos (CRUD config-driven)
+│   ├── dashboard/  # Dashboard con métricas y alertas
+│   ├── inventory/  # Existencias, movimientos, ajustes
+│   └── profile/    # Perfil de usuario
+├── permissions/    # Matriz de capacidades por rol (RBAC)
 ├── routes/         # Rutas y guards de navegación
-├── stores/         # Estados globales (toast, tema)
+├── stores/         # Estado global (toast, tema)
 ├── types/          # Interfaces TypeScript
-├── utils/          # Utilidades y helpers
-└── views/          # Vistas públicas
+├── utils/          # Composables y helpers
+└── views/          # Vistas públicas (welcome, login, 403, 404)
 ```
 
 ---
 
-## 👥 Roles
+## Roles
 
-| Rol               | Acceso                      |
-| ----------------- | --------------------------- |
-| `administrador`   | Acceso completo             |
+| Rol | Acceso |
+|---|---|
+| `administrador` | Completo |
 | `asistente_actas` | Gestión de actas e inventario |
-| `consulta`        | Solo lectura                |
-
-La autorización se valida en backend. El frontend adapta la interfaz según el rol autenticado.
+| `consulta` | Solo lectura |
 
 ---
 
-## 🚀 Despliegue
+## Despliegue
 
-| Componente | Plataforma     |
-| ---------- | -------------- |
-| Frontend   | Vercel         |
-| Backend    | Railway        |
+| Componente | Plataforma |
+|---|---|
+| Frontend | Vercel |
+| Backend | Railway |
 
 ---
 
-## 📄 Licencia
+## Licencia
 
-MIT. Proyecto de portafolio desarrollado por [he-code](https://github.com/he-code).
+MIT. Proyecto de portafolio por [he-code](https://github.com/he-code).
