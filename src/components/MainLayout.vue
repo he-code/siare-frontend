@@ -14,8 +14,17 @@
             <span>{{ item.label }}</span>
           </RouterLink>
         </div>
+
+        <div class="main-nav__group">
+          <button class="sidebar-theme-toggle" @click="theme.toggle">
+            <component :is="theme.isDark ? Sun : Moon" aria-hidden="true" />
+            <span>{{ theme.isDark ? 'Modo claro' : 'Modo oscuro' }}</span>
+          </button>
+        </div>
       </nav>
     </aside>
+
+    <div v-if="sidebarOpen" class="sidebar-backdrop" @click="sidebarOpen = false" />
 
     <div class="content-shell">
       <header class="topbar">
@@ -58,8 +67,10 @@ import {
   LayoutDashboard,
   LogOut,
   Menu,
+  Moon,
   PackageCheck,
   Settings2,
+  Sun,
   UserRound,
   UsersRound,
 } from 'lucide-vue-next';
@@ -68,6 +79,7 @@ import { useRoute, useRouter } from 'vue-router';
 
 import AppButton from '@/components/AppButton.vue';
 import { useAuthStore } from '@/auth/session';
+import { useThemeStore } from '@/stores/theme';
 import { can, roleLabel, type Capability } from '@/permissions/capabilities';
 
 interface MenuItem {
@@ -134,6 +146,7 @@ const menuGroups: MenuGroup[] = [
 ];
 
 const auth = useAuthStore();
+const theme = useThemeStore();
 const router = useRouter();
 const route = useRoute();
 const sidebarOpen = ref(false);
