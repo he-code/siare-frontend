@@ -11,8 +11,19 @@
       </AppButton>
     </div>
 
-    <LoadingBlock v-if="loading" />
-    <EmptyState v-else-if="error" title="No se pudo cargar el resumen" :message="error" :icon="CircleAlert" />
+    <template v-if="loading">
+      <SkeletonLoader type="metric" />
+      <SkeletonLoader type="table" :rows="3" />
+    </template>
+    <EmptyState
+      v-else-if="error"
+      title="No se pudo cargar el resumen"
+      :message="error"
+      :icon="CircleAlert"
+      action-label="Reintentar"
+      :busy="loading"
+      @action="loadSummary"
+    />
 
     <template v-else>
       <div class="metrics-grid">
@@ -92,6 +103,7 @@ import { useAuthStore } from '@/auth/session';
 import AppButton from '@/components/AppButton.vue';
 import EmptyState from '@/components/EmptyState.vue';
 import LoadingBlock from '@/components/LoadingBlock.vue';
+import SkeletonLoader from '@/components/SkeletonLoader.vue';
 import StatusBadge from '@/components/StatusBadge.vue';
 import type { DataResponse, InventorySummary } from '@/types/contracts';
 import { formatDateTime, formatDecimal } from '@/utils/format';
