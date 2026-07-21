@@ -20,7 +20,22 @@
 
           <label class="form-field">
             <span>Contraseña</span>
-            <input v-model="password" type="password" autocomplete="current-password" minlength="8" maxlength="200" required />
+            <div style="position: relative">
+              <input v-model="password" :type="showPassword ? 'text' : 'password'" autocomplete="current-password" minlength="8" maxlength="200" required style="padding-right: 40px" />
+              <AppButton
+                type="button"
+                variant="ghost"
+                icon-only
+                :aria-label="showPassword ? 'Ocultar contraseña' : 'Mostrar contraseña'"
+                style="position: absolute; right: 2px; top: 50%; transform: translateY(-50%)"
+                @click="showPassword = !showPassword"
+              >
+                <template #icon>
+                  <Eye v-if="!showPassword" aria-hidden="true" />
+                  <EyeOff v-else aria-hidden="true" />
+                </template>
+              </AppButton>
+            </div>
           </label>
 
           <p v-if="sessionMessage" class="alert alert--info">{{ sessionMessage }}</p>
@@ -37,7 +52,7 @@
 </template>
 
 <script setup lang="ts">
-import { LogIn, PackageCheck } from 'lucide-vue-next';
+import { Eye, EyeOff, LogIn, PackageCheck } from 'lucide-vue-next';
 import { computed, ref } from 'vue';
 import { useRoute, useRouter } from 'vue-router';
 
@@ -52,6 +67,7 @@ const email = ref('');
 const password = ref('');
 const loading = ref(false);
 const error = ref('');
+const showPassword = ref(false);
 const sessionMessage = computed(() =>
   route.query.session === 'expired' ? 'Tu sesión expiró o dejó de ser válida. Inicia sesión nuevamente.' : '',
 );
